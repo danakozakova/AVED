@@ -1,0 +1,413 @@
+---
+title: "Cvičení 8: dplyr - Manipulácia s dátami"
+subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
+author: "Vaše meno"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: cosmo
+    highlight: tango
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>"
+)
+```
+
+# 📚 Úvod
+
+V tomto cvičení si procvičíte používání základních nástrojů z balíku **dplyr**, které znáte z přednášky:
+
+- **`select()`** - výběr sloupců
+- **`filter()`** - filtrování řádků
+- **`arrange()`** - řazení dat
+- **`mutate()`** - vytváření nových proměnných
+- **`summarise()`** - agregace dat
+- **`group_by()`** - seskupování dat
+- **`*_join()`** - spojování tabulek
+
+# 📦 Načítání balíků
+
+```{r packages}
+# Načtěte potřebné balíky
+
+
+```
+
+---
+
+# 🔥 Cvičení na rozcvičení
+
+```{r ukol_rozehnuti_data}
+# Načtení a prozkoumání dat
+
+
+```
+
+```{r ukol_rozehnuti}
+# Transformace dat pomocí dplyr funkcí
+
+
+```
+
+---
+
+# 🏛️ Cvičení 1: Privatizace a restituce v ČR
+
+Analyzujte data o privatizaci a restituci v České republice.
+
+## Načtení dat
+
+```{r ukol_1_nacteni}
+# Načtěte data
+
+
+# Zobrazení dat
+
+
+```
+
+## Úkol 1.1: Filtrování a výběr
+
+```{r ukol_1_1}
+# Filtrujte data podle zadaných kritérií
+
+
+```
+
+## Úkol 1.2: Tvorba nových proměnných
+
+```{r ukol_1_2}
+# Vytvořte nové proměnné pomocí mutate()
+
+
+```
+
+## Úkol 1.3: Seskupení a agregace
+
+```{r ukol_1_3}
+# Seskupte data a vypočítejte agregační statistiky
+
+
+```
+
+---
+
+# 📊 Cvičení 2: Census v otevřených datech ČSÚ
+
+Práce s otevřenými daty z Českého statistického úřadu.
+
+## Načtení dat
+
+```{r ukol_2_nacteni}
+# Načtěte census data
+
+
+# Zobrazení struktury dat
+
+
+```
+
+## Úkol 2.1: Výběr relevantních sloupců
+
+```{r ukol_2_1}
+# Vyberte relevantní sloupce pomocí select()
+
+
+```
+
+## Úkol 2.2: Filtrování a řazení
+
+```{r ukol_2_2}
+# Filtrujte data a seřaďte je
+
+
+```
+
+## Úkol 2.3: Komplexní transformace
+
+```{r ukol_2_3}
+# Kombinujte více dplyr operací
+
+
+```
+
+---
+
+# 🌍 Cvičení 3: WIID data
+
+Analýza dat o příjmové nerovnosti z World Income Inequality Database.
+
+## Načtení dat
+
+```{r ukol_3_nacteni}
+# Načtěte WIID data
+
+
+# Zobrazení prvních řádků
+
+
+```
+
+## Úkol 3.1: Explorativní analýza
+
+```{r ukol_3_1}
+# Prozkoumejte strukturu dat
+
+
+```
+
+## Úkol 3.2: Agregace podle skupin
+
+```{r ukol_3_2}
+# Seskupte data a vypočítejte statistiky
+
+
+```
+
+## Úkol 3.3: Vytvoření souhrnné tabulky
+
+```{r ukol_3_3}
+# Vytvořte souhrnnou tabulku s klíčovými metrikami
+
+
+```
+
+---
+
+# 🔗 Cvičení 4: Spojování tabulek
+
+Procvičení různých typů joinů.
+
+## Příprava dat
+
+```{r ukol_4_priprava}
+# Vytvořte nebo načtěte testovací tabulky
+
+
+```
+
+## Úkol 4.1: Inner join
+
+```{r ukol_4_1}
+# Proveďte inner join
+
+
+```
+
+## Úkol 4.2: Left join
+
+```{r ukol_4_2}
+# Proveďte left join
+
+
+```
+
+## Úkol 4.3: Full join
+
+```{r ukol_4_3}
+# Proveďte full join
+
+
+```
+
+## Úkol 4.4: Anti join
+
+```{r ukol_4_4}
+# Použijte anti join pro identifikaci neshod
+
+
+```
+
+---
+
+# 🔄 Cvičení 5: Nahrazení chybějících hodnot
+
+Práce s chybějícími hodnotami v datech.
+
+## Načtení dat s NA
+
+```{r ukol_5_nacteni}
+# Načtěte data s chybějícími hodnotami
+
+
+# Zjistěte počet NA v jednotlivých sloupcích
+
+
+```
+
+## Řešení úkolu 1: Odstranění řádků s NA
+
+```{r ukol_5_reseni_1}
+# Odstraňte řádky obsahující NA
+
+
+```
+
+## Řešení úkolu 2: Nahrazení NA konkrétními hodnotami
+
+```{r ukol_5_reseni_2}
+# Nahraďte NA vhodnými hodnotami
+
+
+```
+
+## Řešení úkolu 3: Komplexní řešení s group_by
+
+```{r ukol_5_reseni_3}
+# Použijte skupinové operace pro nahrazení NA
+
+
+```
+
+---
+
+# 📝 Přehled funkcí dplyr
+
+## Základní transformace
+
+```r
+# Výběr sloupců
+select(data, col1, col2)
+select(data, starts_with("prefix"))
+select(data, -col_to_remove)
+
+# Filtrování řádků
+filter(data, condition)
+filter(data, col1 > 10, col2 == "value")
+
+# Řazení
+arrange(data, col1)
+arrange(data, desc(col2))
+
+# Vytváření nových proměnných
+mutate(data, new_col = expression)
+mutate(data, new_col1 = expr1, new_col2 = expr2)
+```
+
+## Agregace a seskupení
+
+```r
+# Seskupení
+group_by(data, col1, col2)
+
+# Agregace
+summarise(data, mean_val = mean(col), sum_val = sum(col))
+
+# Počítání
+count(data, col1, col2)
+n()
+n_distinct()
+```
+
+## Spojování tabulek
+
+```r
+# Inner join - pouze řádky se shodou v obou tabulkách
+inner_join(x, y, by = "key")
+
+# Left join - všechny řádky z x
+left_join(x, y, by = "key")
+
+# Right join - všechny řádky z y
+right_join(x, y, by = "key")
+
+# Full join - všechny řádky z obou tabulek
+full_join(x, y, by = "key")
+
+# Semi join - řádky z x se shodou v y (bez sloupců z y)
+semi_join(x, y, by = "key")
+
+# Anti join - řádky z x BEZ shody v y
+anti_join(x, y, by = "key")
+```
+
+---
+
+# 💡 Důležité poznámky
+
+## Pipe operátor %>%
+
+Pipe operátor umožňuje řetězení operací:
+
+```r
+# Místo:
+result <- function3(function2(function1(data)))
+
+# Použijte:
+result <- data %>%
+  function1() %>%
+  function2() %>%
+  function3()
+```
+
+## Časté problémy a řešení
+
+### Problém 1: Jména sloupců s mezerami
+
+```r
+# ❌ CHYBA
+select(data, column name)
+
+# ✅ ŘEŠENÍ
+select(data, `column name`)
+```
+
+### Problém 2: Zapomenutí ungroup()
+
+```r
+# ❌ Nebezpečné - data zůstávají seskupená
+data %>%
+  group_by(id) %>%
+  mutate(mean_val = mean(value))
+
+# ✅ Bezpečné
+data %>%
+  group_by(id) %>%
+  mutate(mean_val = mean(value)) %>%
+  ungroup()
+```
+
+### Problém 3: Použití summarise() vs mutate()
+
+```r
+# summarise() - redukuje počet řádků
+data %>%
+  group_by(group) %>%
+  summarise(mean_val = mean(value))  # Jeden řádek na skupinu
+
+# mutate() - zachovává počet řádků
+data %>%
+  group_by(group) %>%
+  mutate(mean_val = mean(value))  # Stejný počet řádků jako původní data
+```
+
+---
+
+# 🎯 Checklist
+
+- [ ] Rozumím rozdílu mezi `select()` a `filter()`?
+- [ ] Vím, kdy použít `mutate()` a `summarise()`?
+- [ ] Dokážu efektivně používat pipe operátor `%>%`?
+- [ ] Chápu rozdíly mezi různými typy joinů?
+- [ ] Vím, jak pracovat s chybějícími hodnotami?
+- [ ] Umím kombinovat více dplyr operací dohromady?
+
+---
+
+# 🔗 Užitečné odkazy
+
+- [dplyr cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/data-transformation.pdf)
+- [R for Data Science - Data transformation](https://r4ds.had.co.nz/transform.html)
+- [dplyr documentation](https://dplyr.tidyverse.org/)
+
+

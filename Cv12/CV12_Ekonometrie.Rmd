@@ -1,0 +1,641 @@
+---
+title: "Cvičení 12: Ekonometrie v R"
+subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
+author: "Vaše meno"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: cosmo
+    highlight: tango
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+# 📚 Úvod
+
+V tomto cvičení si procvičíte základní ekonometrické metody v R:
+
+- **OLS regrese** - metoda nejmenších čtverců
+- **Diagnostika modelů** - testy, residuály, multikolinearita
+- **Robustní standardní chyby** - práce s heteroskedasticitou
+- **Panelová data** - fixed effects, random effects
+- **Vizualizace odhadů** - grafy koeficientů a predikce
+
+# 📦 Načítání balíků
+
+```{r packages}
+# Načtěte potřebné balíky
+# library(tidyverse)
+# library(broom)
+# library(lmtest)
+# library(sandwich)
+# library(plm)
+# library(stargazer)
+# library(modelsummary)
+
+
+```
+
+---
+
+# 🔥 Cvičení na rozehřátí: Dlouhý a široký
+
+Úvod do práce s ekonometrickými daty a jejich transformace.
+
+## Načtení dat
+
+```{r rozehnuti_data}
+# Načtěte data
+
+
+# Prozkoumejte strukturu
+
+
+```
+
+## Transformace dat
+
+```{r rozehnuti_transformace}
+# Transformujte data mezi dlouhým a širokým formátem
+
+
+```
+
+**Otázka:** Kdy je vhodné použít dlouhý formát a kdy široký?
+
+---
+
+# 🎓 Cvičení A: Hurá do školy (hrajeme si s OLS)
+
+Základní aplikace lineární regrese metodou nejmenších čtverců (OLS).
+
+## Načtení dat
+
+```{r ukol_a_data}
+# Načtěte školní data
+
+
+# Explorativní analýza
+
+
+```
+
+## Úkol A.1: Jednoduchá lineární regrese
+
+```{r ukol_a_1}
+# Odhadněte jednoduchý lineární model
+# y ~ x
+
+
+```
+
+**Interpretace:**
+- Jaký je sklon regresní přímky?
+- Je koeficient statisticky významný?
+- Jaká je hodnota R²?
+
+## Úkol A.2: Vícenásobná regrese
+
+```{r ukol_a_2}
+# Odhadněte model s více vysvětlujícími proměnnými
+
+
+```
+
+**Analýza:**
+- Které proměnné jsou významné?
+- Jak se změnilo R²?
+
+## Úkol A.3: Diagnostika modelu
+
+```{r ukol_a_3}
+# Diagnostické testy
+# - Normalita reziduí
+# - Heteroskedasticita
+# - Autokorelace
+
+
+```
+
+## Úkol A.4: Vizualizace reziduí
+
+```{r ukol_a_4}
+# Grafy reziduí
+# - Residual vs Fitted
+# - Q-Q plot
+# - Scale-Location
+# - Residuals vs Leverage
+
+
+```
+
+---
+
+# 🛡️ Klastrované standardní chyby
+
+Práce s robustními standardními chybami při porušení předpokladů OLS.
+
+## Heteroskedasticita
+
+```{r klastrove_se_1}
+# Test heteroskedasticity (Breusch-Pagan test)
+
+
+```
+
+## Robustní standardní chyby
+
+```{r klastrove_se_2}
+# Výpočet robustních SE pomocí sandwich balíku
+
+
+```
+
+## Klastrované standardní chyby
+
+```{r klastrove_se_3}
+# Klastrované SE podle skupin
+
+
+```
+
+**Poznámka:** Robustní a klastrované SE jsou důležité pro korektní inferenci.
+
+---
+
+# 📝 Není formula jako Formula
+
+Různé způsoby specifikace regresních modelů v R.
+
+## Základní formule
+
+```{r formula_1}
+# Základní specifikace
+# y ~ x1 + x2 + x3
+
+
+```
+
+## Interakce
+
+```{r formula_2}
+# Interakční efekty
+# y ~ x1 * x2  (zahrnuje x1 + x2 + x1:x2)
+# y ~ x1:x2    (pouze interakce)
+
+
+```
+
+## Transformace proměnných
+
+```{r formula_3}
+# Logaritmy a polynomy
+# log(y) ~ log(x1) + I(x2^2)
+
+
+```
+
+## Všechny proměnné
+
+```{r formula_4}
+# Použití všech proměnných kromě y
+# y ~ .
+
+
+```
+
+---
+
+# 🎭 Cvičení Aáááá: Simulanti | Hraní si s výstupním objektem
+
+Simulace dat a práce s objekty regresních modelů.
+
+## Simulace dat
+
+```{r ukol_aaaa_simulace}
+# Simulujte data pro regresní analýzu
+# y = beta0 + beta1*x + epsilon
+
+
+```
+
+## Odhad modelu
+
+```{r ukol_aaaa_odhad}
+# Odhadněte model na simulovaných datech
+
+
+```
+
+## Práce s výstupním objektem
+
+```{r ukol_aaaa_objekt}
+# Extrakce informací z lm objektu
+# - Koeficienty
+# - Residuály
+# - Fitted values
+# - R²
+# - F-statistika
+
+
+```
+
+## Funkce broom
+
+```{r ukol_aaaa_broom}
+# Použití broom balíku
+# tidy() - tabulka koeficientů
+# glance() - model statistics
+# augment() - data + predictions + residuals
+
+
+```
+
+---
+
+# 💼 Cvičení B: Trh práce
+
+Aplikace regresní analýzy na data o trhu práce.
+
+## Načtení dat
+
+```{r ukol_b_data}
+# Načtěte data o trhu práce
+
+
+# Popisné statistiky
+
+
+```
+
+## Úkol B.1: Mzdová rovnice
+
+```{r ukol_b_1}
+# Odhadněte Mincerovu mzdovou rovnici
+# log(wage) ~ education + experience + experience^2
+
+
+```
+
+**Interpretace:**
+- Jaký je návratnost vzdělání?
+- Je zkušenost významná?
+- Má zkušenost nelineární efekt?
+
+## Úkol B.2: Genderové rozdíly
+
+```{r ukol_b_2}
+# Přidejte gender do modelu
+# Testujte genderové rozdíly
+
+
+```
+
+## Úkol B.3: Interakce
+
+```{r ukol_b_3}
+# Interakce mezi vzděláním a genderem
+
+
+```
+
+**Otázka:** Liší se návratnost vzdělání mezi muži a ženami?
+
+## Úkol B.4: Predikce
+
+```{r ukol_b_4}
+# Vytvořte predikce pro nová pozorování
+
+
+```
+
+---
+
+# 📊 Cvičení C: Panelová data
+
+Práce s panelovými (longitudinálními) daty.
+
+## Načtení panelových dat
+
+```{r ukol_c_data}
+# Načtěte panelová data
+
+
+# Nastavení panelové struktury
+
+
+```
+
+## Úkol C.1: Pooled OLS
+
+```{r ukol_c_1}
+# Pooled OLS model (ignoruje panelovou strukturu)
+
+
+```
+
+## Úkol C.2: Fixed Effects (Within estimator)
+
+```{r ukol_c_2}
+# Fixed effects model
+# Kontrola individuálních fixních efektů
+
+
+```
+
+**Interpretace:**
+- Jak se liší od pooled OLS?
+- Které proměnné "zmizely"?
+
+## Úkol C.3: Random Effects
+
+```{r ukol_c_3}
+# Random effects model
+
+
+```
+
+## Úkol C.4: Hausman test
+
+```{r ukol_c_4}
+# Test FE vs RE (Hausman test)
+
+
+```
+
+**Rozhodnutí:** Který model je vhodnější - FE nebo RE?
+
+## Úkol C.5: Time Fixed Effects
+
+```{r ukol_c_5}
+# Přidání časových fixních efektů
+
+
+```
+
+## Úkol C.6: Two-way Fixed Effects
+
+```{r ukol_c_6}
+# Individuální i časové fixní efekty
+
+
+```
+
+---
+
+# 📈 Cvičení D: Vykreslení odhadů
+
+Vizualizace výsledků regresní analýzy.
+
+## Graf koeficientů
+
+```{r ukol_d_1}
+# Vytvořte graf koeficientů s konfidenčními intervaly
+
+
+```
+
+## Srovnání modelů
+
+```{r ukol_d_2}
+# Srovnání více modelů v jednom grafu
+
+
+```
+
+## Predikce s intervaly
+
+```{r ukol_d_3}
+# Graf predikovaných hodnot s konfidenčními intervaly
+
+
+```
+
+## Marginální efekty
+
+```{r ukol_d_4}
+# Vizualizace marginálních efektů
+
+
+```
+
+---
+
+# 📋 Tabulky výsledků
+
+## Základní tabulka
+
+```{r tabulky_1}
+# Tabulka pomocí stargazer
+
+
+```
+
+## Srovnávací tabulka
+
+```{r tabulky_2}
+# Srovnání více modelů
+
+
+```
+
+## Moderní tabulky
+
+```{r tabulky_3}
+# Použití modelsummary balíku
+
+
+```
+
+---
+
+# 💡 Důležité poznámky
+
+## OLS předpoklady
+
+1. **Linearita** - vztah mezi X a Y je lineární
+2. **Nezávislost** - pozorování jsou nezávislá
+3. **Homoskedasticita** - konstantní rozptyl chyb
+4. **Normalita** - chyby mají normální rozdělení
+5. **Žádná multikolinearita** - X proměnné nejsou perfektně korelovány
+
+## Diagnostické testy
+
+```r
+# Heteroskedasticita
+lmtest::bptest(model)          # Breusch-Pagan test
+
+# Autokorelace
+lmtest::dwtest(model)          # Durbin-Watson test
+
+# Normalita reziduí
+shapiro.test(residuals(model)) # Shapiro-Wilk test
+
+# Multikolinearita
+car::vif(model)                # Variance Inflation Factor
+```
+
+## Robustní standardní chyby
+
+```r
+# HC0 - White
+coeftest(model, vcov = vcovHC(model, type = "HC0"))
+
+# HC1 - často používaný
+coeftest(model, vcov = vcovHC(model, type = "HC1"))
+
+# HAC - heteroskedasticita a autokorelace
+coeftest(model, vcov = vcovHAC(model))
+
+# Klastrované
+coeftest(model, vcov = vcovCL(model, cluster = ~group))
+```
+
+---
+
+# 🔧 Užitečné funkce
+
+## Základní regresní funkce
+
+```r
+# Odhad modelu
+lm(y ~ x1 + x2, data = data)
+
+# Summary výsledků
+summary(model)
+
+# Predikce
+predict(model, newdata = new_data, interval = "confidence")
+
+# Residuály
+residuals(model)
+resid(model)
+
+# Fitted values
+fitted(model)
+fitted.values(model)
+
+# Koeficienty
+coef(model)
+coefficients(model)
+```
+
+## Panelové modely (plm)
+
+```r
+# Nastavení panelu
+pdata <- pdata.frame(data, index = c("id", "time"))
+
+# Fixed effects
+plm(y ~ x, data = pdata, model = "within")
+
+# Random effects
+plm(y ~ x, data = pdata, model = "random")
+
+# Pooled OLS
+plm(y ~ x, data = pdata, model = "pooling")
+
+# First differences
+plm(y ~ x, data = pdata, model = "fd")
+```
+
+## broom funkce
+
+```r
+# Tabulka koeficientů
+tidy(model)
+
+# Model statistics
+glance(model)
+
+# Augmented data
+augment(model)
+```
+
+---
+
+# 📊 Interpretace koeficientů
+
+## Základní interpretace
+
+```r
+# Level-level: y = β₀ + β₁x
+# Interpretace: Změna x o 1 jednotku → změna y o β₁ jednotek
+```
+
+## Semi-logaritmické modely
+
+```r
+# Log-level: log(y) = β₀ + β₁x
+# Interpretace: Změna x o 1 jednotku → změna y o (100 × β₁)%
+
+# Level-log: y = β₀ + β₁log(x)
+# Interpretace: Změna x o 1% → změna y o (β₁/100) jednotek
+```
+
+## Log-log modely (elasticity)
+
+```r
+# Log-log: log(y) = β₀ + β₁log(x)
+# Interpretace: β₁ je elasticita - změna x o 1% → změna y o β₁%
+```
+
+## Dummy proměnné
+
+```r
+# y = β₀ + β₁D
+# Interpretace: Když D=1, y je o β₁ vyšší než když D=0
+```
+
+---
+
+# 🎯 Checklist
+
+- [ ] Rozumím základním předpokladům OLS?
+- [ ] Vím, jak odhadnout a interpretovat lineární model?
+- [ ] Dokážu provést diagnostiku modelu?
+- [ ] Umím pracovat s robustními standardními chybami?
+- [ ] Chápu rozdíl mezi fixed a random effects?
+- [ ] Vím, kdy použít panelové modely?
+- [ ] Dokážu vizualizovat výsledky regrese?
+- [ ] Umím vytvořit profesionální tabulky výsledků?
+
+---
+
+# 🔗 Užitečné odkazy
+
+- [Introduction to Econometrics with R](https://www.econometrics-with-r.org/)
+- [plm package documentation](https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html)
+- [broom package](https://broom.tidymodels.org/)
+- [modelsummary package](https://modelsummary.com/)
+- [Econometric Analysis (Greene)](http://pages.stern.nyu.edu/~wgreene/Text/econometricanalysis.htm)
+
+---
+
+# 📚 Doporučená literatura
+
+- **Wooldridge, J. M.**: Introductory Econometrics: A Modern Approach
+- **Greene, W. H.**: Econometric Analysis
+- **Angrist, J. D. & Pischke, J-S.**: Mostly Harmless Econometrics
+- **Stock, J. H. & Watson, M. W.**: Introduction to Econometrics
+
+---
+
+<div style="text-align: center; margin-top: 50px; padding: 20px; background-color: #f0f0f0; border-radius: 10px;">
+**Vytvorené pre:** MPE_AVED, Týždeň 12, ECON MUNI  
+**Dátum:** `r Sys.Date()`
+</div>

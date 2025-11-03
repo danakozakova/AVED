@@ -1,0 +1,468 @@
+---
+title: "Cvičení 10: Exploratory Data Analysis - Vizualizace dat"
+subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
+author: "Vaše meno"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: cosmo
+    highlight: tango
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+# 📚 Úvod
+
+V tomto cvičení si procvičíte **exploratorní analýzu dat (EDA)** s důrazem na vizualizaci. Naučíte se:
+
+- **Vizualizovat rozdělení diskrétních proměnných** - sloupcové grafy
+- **Vizualizovat rozdělení spojitých proměnných** - histogramy, hustotní grafy, box ploty
+- **Analyzovat vztahy mezi proměnnými** - scatter ploty, korelace
+- **Identifikovat vzory a anomálie** v datech
+- **Vytvářet informativní a profesionální vizualizace**
+
+# 📦 Načítání balíků
+
+```{r packages}
+# Načtěte potřebné balíky
+
+
+```
+
+---
+
+# 📊 Vizualizace rozdělení diskrétní proměnné (množství)
+
+Diskrétní (kategorické) proměnné mají omezený počet hodnot. Pro jejich vizualizaci používáme především sloupcové grafy.
+
+## Načtení dat
+
+```{r diskretni_data}
+# Načtěte data pro analýzu diskrétních proměnných
+
+
+# Prozkoumejte strukturu dat
+
+
+```
+
+## Cvičení A
+
+**Zadání:** Vytvořte sloupcový graf zobrazující četnosti kategorií.
+
+```{r cviceni_a}
+# Sloupcový graf pro diskrétní proměnnou
+
+
+```
+
+**Otázky k zamyšlení:**
+- Která kategorie je nejčetnější?
+- Existují kategorie s velmi nízkým počtem pozorování?
+
+---
+
+# 📈 Vizualizace rozdělení spojité proměnné
+
+Spojité proměnné mohou nabývat nekonečně mnoho hodnot. Pro jejich vizualizaci používáme histogramy, hustotní grafy a box ploty.
+
+## Načtení dat
+
+```{r spojite_data}
+# Načtěte data pro analýzu spojitých proměnných
+
+
+# Základní statistiky
+
+
+```
+
+## Cvičení B
+
+**Zadání:** Vytvořte histogram pro spojitou proměnnou.
+
+```{r cviceni_b}
+# Histogram s vhodným počtem binů
+
+
+```
+
+**Otázky k zamyšlení:**
+- Jak vypadá rozdělení? (normální, zešikmené, bimodální?)
+- Jsou v datech extrémní hodnoty?
+
+## Cvičení C
+
+**Zadání:** Vytvořte hustotní graf (density plot) pro spojitou proměnnou.
+
+```{r cviceni_c}
+# Hustotní graf
+
+
+```
+
+**Srovnání:** Jaké jsou výhody hustotního grafu oproti histogramu?
+
+## Cvičení D
+
+**Zadání:** Vytvořte krabicový graf (box plot) pro spojitou proměnnou.
+
+```{r cviceni_d}
+# Krabicový graf
+
+
+```
+
+**Interpretace:**
+- Kde je medián?
+- Jaký je mezikvartilové rozpětí (IQR)?
+- Existují odlehlé hodnoty?
+
+## Cvičení E (s hvězdičkou) ⭐
+
+**Zadání:** Vytvořte komplexní vizualizaci kombinující více typů grafů pro porovnání rozdělení spojité proměnné podle kategorií.
+
+```{r cviceni_e}
+# Kombinace histogramů/hustotních grafů podle kategorií
+# Použijte faceting nebo překryvné grafy
+
+
+```
+
+**Bonusové úkoly:**
+- Přidejte průměry nebo mediány pro každou kategorii
+- Použijte různé barvy pro jednotlivé kategorie
+- Přidejte legendu a popisky
+
+## Cvičení F
+
+**Zadání:** Vytvořte houslový graf (violin plot) pro porovnání rozdělení napříč kategoriemi.
+
+```{r cviceni_f}
+# Violin plot
+
+
+```
+
+**Interpretace:** Jaké informace poskytuje violin plot navíc oproti box plotu?
+
+## Cvičení G
+
+**Zadání:** Vytvořte kombinovaný graf s box plotem a jednotlivými body (jittered points).
+
+```{r cviceni_g}
+# Box plot s překrytými body
+
+
+```
+
+**Poznámka:** Tento typ vizualizace je užitečný pro menší datasety, kde chceme vidět jak rozdělení, tak jednotlivá pozorování.
+
+---
+
+# 🔍 Vizualizace vztahů v rovině
+
+Analýza vztahů mezi dvěma proměnnými je klíčovou částí EDA. Používáme scatter ploty, korelační grafy a další.
+
+## Načtení dat
+
+```{r vztahy_data}
+# Načtěte data pro analýzu vztahů
+
+
+# Prozkoumejte strukturu
+
+
+```
+
+## Cvičení H
+
+**Zadání:** Vytvořte bodový graf (scatter plot) zobrazující vztah mezi dvěma spojitými proměnnými.
+
+```{r cviceni_h}
+# Scatter plot
+
+
+```
+
+**Otázky k zamyšlení:**
+- Existuje mezi proměnnými vztah?
+- Je vztah lineární nebo nelineární?
+- Jsou v datech outliers?
+
+## Cvičení I
+
+**Zadání:** Přidejte do scatter plotu trendovou čáru.
+
+```{r cviceni_i}
+# Scatter plot s trendovou čárou (lineární i nelineární)
+
+
+```
+
+**Úkol:** Vypočítejte korelační koeficient:
+
+```{r cviceni_i_korelace}
+# Výpočet korelace
+
+
+```
+
+## Cvičení J
+
+**Zadání:** Vytvořte scatter plot s rozlišením podle třetí kategoriální proměnné (pomocí barvy nebo tvaru bodů).
+
+```{r cviceni_j}
+# Scatter plot s barevným rozlišením kategorií
+
+
+```
+
+**Analýza:** Liší se vztah mezi proměnnými podle kategorií?
+
+## Cvičení K
+
+**Zadání:** Vytvořte matici scatter plotů (pairs plot) pro exploraci vztahů mezi více proměnnými.
+
+```{r cviceni_k}
+# Matice scatter plotů
+# Můžete použít GGally::ggpairs() nebo základní pairs()
+
+
+```
+
+**Interpretace:** Které páry proměnných vykazují nejsilnější vztahy?
+
+---
+
+# 📊 Sumarizace dat
+
+## Popisné statistiky
+
+```{r popisne_statistiky}
+# Vypočítejte základní popisné statistiky
+
+
+```
+
+## Seskupené statistiky
+
+```{r seskupene_statistiky}
+# Vypočítejte statistiky podle skupin
+
+
+```
+
+---
+
+# 🎨 Pokročilé techniky vizualizace
+
+## Ridge plots (pro porovnání hustot)
+
+```{r ridge_plot}
+# Použijte ggridges balík pro ridge plot
+
+
+```
+
+## Hexbin plot (pro velké datasety)
+
+```{r hexbin_plot}
+# Hexbin pro scatter plot s mnoha body
+
+
+```
+
+## Korelační heatmapa
+
+```{r correlation_heatmap}
+# Vytvoření korelační matice a její vizualizace
+
+
+```
+
+---
+
+# 💡 Důležité poznámky
+
+## Výběr správného typu grafu
+
+| Účel | Typ dat | Vhodný graf |
+|------|---------|-------------|
+| Rozdělení jedné kategoriální proměnné | Diskrétní | Sloupcový graf (bar plot) |
+| Rozdělení jedné spojité proměnné | Spojitá | Histogram, density plot |
+| Porovnání rozdělení | Spojitá + kategorie | Box plot, violin plot |
+| Vztah mezi dvěma spojitými | Spojitá + spojitá | Scatter plot |
+| Vztah mezi spojitou a kategoriální | Spojitá + diskrétní | Box plot, violin plot |
+
+## Kontrola předpokladů
+
+Při EDA kontrolujeme:
+- **Normalitu rozdělení** - histogram, Q-Q plot
+- **Outliers** - box plot, scatter plot
+- **Linearitu vztahů** - scatter plot
+- **Homoskedasticitu** - residual plots
+- **Chybějící hodnoty** - `summary()`, `is.na()`
+
+## Interpretace korelace
+
+```r
+# Korelační koeficient (Pearson)
+cor(x, y)
+
+# |r| < 0.3   → slabá korelace
+# |r| 0.3-0.7 → střední korelace  
+# |r| > 0.7   → silná korelace
+```
+
+**POZOR:** Korelace ≠ kauzalita!
+
+---
+
+# 🔧 Užitečné funkce
+
+## Základní explorační funkce
+
+```r
+# Přehled datasetu
+str(data)          # struktura
+head(data)         # prvních 6 řádků
+summary(data)      # popisné statistiky
+glimpse(data)      # kompaktní přehled (dplyr)
+
+# Kontrola chybějících hodnot
+sum(is.na(data))
+colSums(is.na(data))
+
+# Unikátní hodnoty
+unique(data$variable)
+n_distinct(data$variable)
+```
+
+## Popisné statistiky
+
+```r
+# Základní
+mean(x, na.rm = TRUE)
+median(x, na.rm = TRUE)
+sd(x, na.rm = TRUE)
+var(x, na.rm = TRUE)
+quantile(x, probs = c(0.25, 0.75))
+IQR(x, na.rm = TRUE)
+
+# Rozsah
+range(x, na.rm = TRUE)
+min(x, na.rm = TRUE)
+max(x, na.rm = TRUE)
+```
+
+## Vizualizační tipy
+
+```r
+# Přidání průhlednosti pro překrývající se body
+geom_point(alpha = 0.5)
+
+# Jittering pro diskrétní data
+geom_jitter(width = 0.2, height = 0)
+
+# Faceting pro kategorie
+facet_wrap(~ category)
+facet_grid(rows ~ cols)
+
+# Témata pro profesionální vzhled
+theme_minimal()
+theme_bw()
+```
+
+---
+
+# 📈 EDA proces krok za krokem
+
+## 1. Pochopení dat
+
+- Načtení dat
+- Kontrola rozměrů: `dim()`, `nrow()`, `ncol()`
+- Přehled struktury: `str()`, `glimpse()`
+- Názvy sloupců: `names()`, `colnames()`
+
+## 2. Kontrola kvality dat
+
+- Chybějící hodnoty: `summary()`, `is.na()`
+- Duplicitní řádky: `duplicated()`
+- Datové typy: kontrola, zda jsou správné
+- Rozsah hodnot: logické minimum/maximum?
+
+## 3. Univariátní analýza
+
+Pro každou proměnnou:
+- Popisné statistiky
+- Vizualizace rozdělení
+- Identifikace outliers
+- Kontrola normalitu (pokud relevantní)
+
+## 4. Bivariátní analýza
+
+- Scatter ploty pro spojité proměnné
+- Box ploty pro spojitou vs. kategoriální
+- Korelační analýza
+- Testy vztahů
+
+## 5. Multivariátní analýza
+
+- Matice scatter plotů
+- Korelační heatmapy
+- Facetované grafy
+- Interakce mezi proměnnými
+
+---
+
+# 🎯 Checklist
+
+- [ ] Rozumím rozdílu mezi diskrétními a spojitými proměnnými?
+- [ ] Vím, jak vizualizovat rozdělení jedné proměnné?
+- [ ] Dokážu porovnat rozdělení napříč kategoriemi?
+- [ ] Umím analyzovat vztahy mezi dvěma proměnnými?
+- [ ] Vím, jak identifikovat outliers a anomálie?
+- [ ] Dokážu interpretovat korelační koeficienty?
+- [ ] Umím vytvořit informativní a čitelné grafy?
+- [ ] Chápu limitace korelační analýzy?
+
+---
+
+# 🔗 Užitečné odkazy
+
+- [R for Data Science - EDA](https://r4ds.had.co.nz/exploratory-data-analysis.html)
+- [ggplot2 documentation](https://ggplot2.tidyverse.org/)
+- [GGally package](https://ggobi.github.io/ggally/) - pro pairs plots
+- [ggridges package](https://wilkelab.org/ggridges/) - pro ridge plots
+- [R Graph Gallery - Distribution](https://r-graph-gallery.com/distribution.html)
+- [Correlation methods](https://www.statmethods.net/stats/correlations.html)
+
+---
+
+# 📚 Doporučená literatura
+
+- **Wickham & Grolemund**: R for Data Science (kapitola 7: EDA)
+- **Tukey, J. W.**: Exploratory Data Analysis (1977) - klasická práce
+- **Healy, K.**: Data Visualization: A Practical Introduction
+
+---
+
+<div style="text-align: center; margin-top: 50px; padding: 20px; background-color: #f0f0f0; border-radius: 10px;">
+**Vytvorené pre:** MPE_AVED, Týždeň 10, ECON MUNI  
+**Dátum:** `r Sys.Date()`
+</div>

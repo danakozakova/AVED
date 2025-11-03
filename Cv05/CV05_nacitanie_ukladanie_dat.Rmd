@@ -1,0 +1,1182 @@
+---
+title: "Týždeň 5: Načítanie dát do R"
+author: "Tvoje meno"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    code_folding: show
+    theme: united
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>"
+)
+```
+
+# Úvod
+
+Toto cvičenie sa venuje načítavaniu dát do R z rôznych formátov súborov. Naučíme sa pracovať s:
+
+- **Binárne R formáty** (.RData, .rds)
+- **Textové formáty** (CSV, TSV)
+- **Excel súbory** (.xls, .xlsx)
+- **Komprimované súbory** (.gz)
+- **Štatistické formáty** (SPSS .sav)
+
+## Prehľad cvičenia
+
+### 📚 Časť 1: Na zahriatie
+- Načítanie dát z balíka ggplot2
+
+### 📊 Časť 2: Eurostat HDP dáta
+- **Úloha 1**: .RData formát
+- **Úloha 2**: .csv formát
+- **Úloha 3**: .tsv.gz formát (6 rôznych prístupov!)
+- **Úloha 4**: .xls formát (s/bez poznámok)
+- **Bonus**: Priame načítanie z Eurostat API
+
+### ⚠️ Časť 3: Murphy - Riešenie problémov
+- **Úloha 1**: Preskúmanie surového súboru
+- **Úloha 2**: Súbor s hlavičkou a špecifickým oddeľovačom
+- **Úloha 3**: Súbor bez hlavičky
+- **Úloha 4**: Problémy s kódovaním (ISO-8859-2)
+- **Úloha 5**: Kontrola integrity dát
+
+### 💾 Časť 4: Ukladanie dát
+- **Úloha 1**: Ukladanie do .RData
+- **Úloha 2**: Ukladanie do .csv (pozor na trick!)
+
+### 🎯 Časť 5: RDS formát
+- **Úloha 1**: Ukladanie jedného objektu
+- **Úloha 2**: Ukladanie viacerých objektov (cez list)
+
+### 🪄 Časť 6: Čierna mágia
+- **Úloha 1**: Načítanie SPSS súboru
+- **Úloha 2**: Práca s labelmi (zap_labels, as_factor)
+
+---
+
+**Dôležité poznámky:**
+
+- Funkcie `read_xxx()` z balíka **readr** vracajú tabuľku triedy `tibble`
+- Základnou funkciou je `read_delim()`, ostatné sú jej špeciálne prípady
+- Vždy si najprv pozri surový obsah súboru pomocou `read_lines()`
+
+```{r cistime-prostredie}
+# Vyčistenie prostredia
+rm(list = ls())
+```
+
+---
+
+# Na zahriatie
+
+## Úloha 1: Načítanie dát z balíka
+
+**Zadanie:** Načítaj z balíka **ggplot2** tabulku `txhousing` a vypiš niekoľko prvých jeho riadkov. Aký typ (triedu) má táto tabuľka?
+
+### Riešenie
+
+```{r nacitanie-txhousing}
+library(ggplot2)
+
+# Spôsob 1: Lazy load - tabuľka sa načíta až pri prvom použití
+txhousing
+
+# Spôsob 2: Explicitné zadanie balíka pomocou ::
+ggplot2::txhousing
+
+# Spôsob 3: Načítanie do environment
+# POZOR: Môže prepísať existujúcu premennú v environment!
+data("txhousing", package = "ggplot2")
+
+# Zistenie triedy objektu
+class(txhousing)
+
+# Zobrazenie prvých riadkov
+head(txhousing)
+```
+
+**Poznámky:**
+
+- `txhousing` je dátová sada obsahujúca informácie o predaji nehnuteľností v Texase
+- Trieda: `tbl_df`, `tbl`, `data.frame` (tibble - moderná verzia data frame)
+- **Lazy load** znamená, že dáta sa načítajú až keď ich skutočne použijeme
+
+---
+
+# Gross Domestic Product at Market Prices
+
+Pracujeme s dátami z Eurostatu s kódom `tec00001` - HDP v trhových cenách.
+
+**Zdroj:** http://ec.europa.eu/eurostat/tgm/table.do?tab=table&init=1&language=en&pcode=tec00001&plugin=1
+
+---
+
+## Úloha 1: Načítanie z binárneho R formátu (.RData)
+
+**Zadanie:** Načítaj dáta z binárneho R formátu. Súbor sa volá "tec00001.RData". Obsahuje tabuľku `tec00001`.
+
+### Riešenie
+
+```{r nacitanie-rdata}
+# Načítanie .RData súboru
+load('tec00001.RData')
+
+# Pozor: to sú TIDY DATA - kľúčom sú prvé dva stĺpce
+head(tec00001)
+```
+
+**Poznámky k TIDY DATA:**
+
+- Každá premenná tvorí stĺpec
+- Každé pozorovanie tvorí riadok
+- Každý typ pozorovacej jednotky tvorí tabuľku
+- V tomto prípade sú kľúčové prvé dva stĺpce (na_item, unit, geo)
+
+---
+
+## Úloha 2: Načítanie z CSV súboru
+
+**Zadanie:** Načítaj rovnakú tabuľku zo súboru "tec00001.csv". Tabuľku pomenuj `tec00001csv`.
+
+### Riešenie
+
+```{r nacitanie-csv}
+library(readr)
+
+# Načítanie CSV s explicitným definovaním typov stĺpcov
+tec00001csv <- read_csv(
+  "tec00001.csv", 
+  col_types = cols(
+    na_item = col_character(),
+    unit = col_character(),
+    geo = col_character(),
+    time = col_date(format = "%Y-%m-%d"),
+    values = col_double()
+  )
+)
+
+tec00001csv
+```
+
+**Poznámky:**
+
+- `read_csv()` je funkcia z balíka **readr** (nie base R funkcia `read.csv`)
+- Explicitné definovanie typov stĺpcov pomocou `col_types` zabezpečuje správne načítanie
+- `col_character()` - textový stĺpec
+- `col_date()` - dátum s definovaným formátom
+- `col_double()` - desatinné číslo
+
+---
+
+## Úloha 3: Načítanie z TSV súboru (komprimovaného)
+
+**Zadanie:** Načítaj rovnakú tabuľku zo súboru "tec00001.tsv.gz". Tabuľku pomenuj `tec00001tsv`. Ako sa táto tabuľka líši od tabuľky `tec00001csv`? (Tento súbor je priamo stiahnutý z Eurostatu.)
+
+### Riešenie - pokus 1 (ZLYHÁ!)
+
+```{r nacitanie-tsv-zle, eval=FALSE}
+# POZOR: Toto načíta defaultne, ale ZLE!
+tec00001tsv <- read_csv("tec00001.tsv.gz")
+tec00001tsv
+```
+
+**Prečo to nefunguje?**
+
+- `read_csv()` očakáva čiarku ako oddeľovač
+- TSV (Tab-Separated Values) používa tabulátor `\t`
+
+### Riešenie - pokus 2 (LEPŠIE)
+
+```{r nacitanie-tsv-spravne}
+# Správne načítanie TSV s definovaním typov
+tec00001tsv <- read_tsv(
+  "tec00001.tsv.gz",
+  col_types = "cnnnnnnnnnnnn",  # c = character, n = number
+  na = ":"  # Nedefinovaná hodnota v Eurostatu je ":"
+)
+
+tec00001tsv
+```
+
+**Vysvetlenie formátu `col_types`:**
+
+- `"cnnnnnnnnnnnn"` = prvý stĺpec je character, zvyšok sú numbers
+- Alternatívne možno použiť `cols()` ako pri CSV
+
+### Riešenie - pokus 3 (pomocou GUI)
+
+```{r nacitanie-tsv-gui, eval=FALSE}
+# Načítanie pomocou dialogového okna v RStudio
+tec00001tsv <- read_delim(
+  "tec00001.tsv.gz", 
+  delim = "\t",  # Tabulátor ako oddeľovač
+  escape_double = FALSE, 
+  col_types = cols(`2007` = col_number()),  # Rok 2007 je číslo
+  trim_ws = TRUE  # Odstránenie medzier na začiatku/konci
+)
+
+# Kontrola problémov pri načítaní
+problems(tec00001tsv)
+```
+
+### Riešenie - pokus 4 (všetky stĺpce ako text)
+
+```{r nacitanie-tsv-text}
+# Načítanie všetkých stĺpcov ako text
+tec00001tsv <- read_tsv(
+  "tec00001.tsv.gz",
+  col_types = cols(.default = col_character()),
+  na = ':'  # Nedefinovaná hodnota je :
+)
+
+head(tec00001tsv)
+```
+
+### Riešenie - pokus 5 (defaultne čísla, prvý stĺpec text)
+
+```{r nacitanie-tsv-cisla, eval=FALSE}
+# POZOR: Stratíme poznámky pri číslach!
+tec00001tsv <- read_tsv(
+  "tec00001.tsv.gz",
+  col_types = cols(
+    .default = col_number(),
+    `na_item,unit,geo\\time` = col_character()
+  ),
+  na = ":"
+)
+
+tec00001tsv
+```
+
+**Problém:** Pri tomto prístupe stratíme prípadné poznámky/flagy pri číslach.
+
+### Riešenie - pokus 6 (NAJLEPŠIE - s oddelením poznámok)
+
+```{r nacitanie-tsv-separate, eval=FALSE}
+# Najlepší prístup: načítať všetko ako text a potom rozdeliť
+# Používa balík tidyr a regulárne výrazy
+library(tidyr)
+
+tec00001tsv <- read_tsv(
+  "tec00001.tsv.gz",
+  col_types = cols(.default = col_character()),
+  na = ":"
+) |>
+  separate_wider_regex(
+    -1,  # Aplikuj na všetky stĺpce okrem prvého
+    patterns = c(
+      year = "[^\\s]*",  # Rok (všetko okrem medzery)
+      "\\s+",            # Medzera(y)
+      note = ".*"        # Poznámka (zvyšok)
+    ),
+    names_sep = "_",
+    too_few = "align_start"
+  )
+
+tec00001tsv
+```
+
+**Vysvetlenie `separate_wider_regex()`:**
+
+- Rozdeľuje text pomocou regulárnych výrazov
+- `[^\\s]*` = všetko okrem medzery (hodnota roku)
+- `\\s+` = jedna alebo viac medzier
+- `.*` = zvyšok riadku (poznámka/flag)
+- `names_sep = "_"` = názvy nových stĺpcov oddeľ podčiarkovníkom
+
+---
+
+## Úloha 4: Načítanie z Excel súboru
+
+**Zadanie:** Načítaj rovnakú tabuľku zo súboru "Eurostat_Table_tec00001FlagDesc_11c465e3-eae1-4c8e-b956-f473d4a78a0a.xls". Tabuľku pomenuj `tec00001xls`. Ako sa tabuľka `tec00001xls` líši od tabuliek `tec00001csv` a `tec00001tsv`?
+
+### Riešenie - bez poznámok
+
+```{r nacitanie-excel-bez-poznamok}
+library(readxl)
+
+filename <- "Eurostat_Table_tec00001FlagDesc_11c465e3-eae1-4c8e-b956-f473d4a78a0a.xls"
+
+# Načítanie bez poznámok (ztratíme flagy)
+tec00001xls <- read_excel(
+  filename,
+  range = "A4:Y47",  # Konkrétny rozsah buniek
+  na = ":",          # Nedefinovaná hodnota
+  col_types = c("text", rep(c("numeric", "skip"), 12))
+)
+
+tec00001xls
+```
+
+**Vysvetlenie parametrov:**
+
+- `range = "A4:Y47"` - načítaj len bunky od A4 po Y47 (preskočíme hlavičku)
+- `rep(c("numeric", "skip"), 12)` - opakuj 12x: číslo, preskoč
+  - Znamená: text, číslo, preskoč, číslo, preskoč, ... (12 rokov)
+
+### Riešenie - so zachovaním poznámok
+
+```{r nacitanie-excel-s-poznamkami}
+# To isté, ale zachováme poznámky
+# Len zmeníme "skip" na "text"
+tec00001xls <- read_excel(
+  filename,
+  range = "A4:Y47",
+  na = ":",
+  col_types = c("text", rep(c("numeric", "text"), 12))
+)
+
+tec00001xls
+```
+
+**Rozdiel:**
+
+- `rep(c("numeric", "skip"), 12)` - číselné hodnoty, poznámky preskočíme
+- `rep(c("numeric", "text"), 12)` - číselné hodnoty aj textové poznámky/flagy
+
+---
+
+## Poznámka 1: Priame načítanie z Eurostatu
+
+```{r nacitanie-eurostat, eval=FALSE}
+# Inštalácia balíka (len raz)
+# install.packages("eurostat")
+
+# Priame načítanie z Eurostat API
+library(eurostat)
+tec00001 <- get_eurostat("tec00001")
+tec00001
+```
+
+**Výhody:**
+
+- Najnovšie dáta priamo zo zdroja
+- Automatické formátovanie
+- Už sú v TIDY formáte
+
+---
+
+# Murphy: Čo sa môže pokaziť...
+
+Táto časť sa venuje problémom, ktoré môžu nastať pri načítavaní reálnych dát.
+
+---
+
+## Úloha 1: Preskúmanie surového súboru
+
+**Zadanie:** Použi funkciu `read_lines()`, aby si sa pozrel, ako vypadá súbor "experiment.csv".
+
+### Riešenie
+
+```{r read-lines}
+filename <- "experiment.csv"
+
+# Načítaj obsah súboru ako text
+read_lines(filename)
+
+# Zobraz prvých 15 riadkov pekne
+read_lines(filename) |> 
+  head(15) |> 
+  cat(sep = "\n")
+```
+
+**Čo sme zistili:**
+
+- Súbor má hlavičku (prvých 8 riadkov nie je dáta)
+- Oddeľovač je dvojbodka `:`
+- Desatinná čiarka namiesto bodky
+- Tisícový oddeľovač je bodka
+
+---
+
+## Úloha 2: Načítanie experiment.csv
+
+**Zadanie:** Načítaj dáta zo súboru "experiment.csv" do premennej `experiment` tak, aby premenná `treatment` bola faktor s úrovňami "control", "group A" a "group B".
+
+### Riešenie
+
+```{r nacitanie-experiment}
+library(readr)
+
+experiment <- read_delim(
+  "experiment.csv", 
+  delim = ":",  # Oddeľovač je dvojbodka
+  escape_double = FALSE, 
+  col_types = cols(
+    id = col_integer(), 
+    height = col_integer(), 
+    weight = col_integer(), 
+    treatment = col_factor(levels = c("control", "group A", "group B"))
+  ), 
+  locale = locale(
+    decimal_mark = ",",   # Desatinná čiarka
+    grouping_mark = "."   # Tisícový oddeľovač
+  ), 
+  trim_ws = TRUE,  # Odstráň medzery na začiatku/konci
+  skip = 8         # Preskoč prvých 8 riadkov (hlavička)
+)
+
+experiment
+```
+
+**Kľúčové parametre:**
+
+- `delim = ":"` - špecifikuje oddeľovač
+- `skip = 8` - preskočí hlavičku súboru
+- `locale = locale(...)` - nastavenie formátu čísel (desatinná čiarka!)
+- `col_factor(levels = c(...))` - vytvorí faktor so špecifikovanými úrovňami
+- `trim_ws = TRUE` - odstráni biele znaky
+
+---
+
+## Úloha 3: Načítanie experiment2.csv
+
+**Zadanie:** Načítaj dáta zo súboru "experiment2.csv" do premennej `experiment2`.
+
+### Riešenie - spôsob 1 (načítaj, potom premenuj)
+
+```{r nacitanie-experiment2-sposob1}
+library(readr)
+
+# Najprv načítame bez názvov stĺpcov
+experiment2 <- read_delim(
+  "experiment2.csv", 
+  delim = ":",
+  escape_double = FALSE,
+  col_names = FALSE,  # Súbor nemá hlavičku!
+  col_types = cols(
+    X1 = col_integer(),  # RStudio automaticky pomenuje stĺpce X1, X2, ...
+    X5 = col_factor(levels = c("control", "group A", "group B"))
+  ), 
+  locale = locale(decimal_mark = ",")
+)
+
+# Potom premenujeme stĺpce
+colnames(experiment2) <- c("id", "name", "height", "weight", "treatment", "value")
+
+experiment2
+```
+
+### Riešenie - spôsob 2 (všetko naraz)
+
+```{r nacitanie-experiment2-sposob2}
+# LEPŠIE: Načítaj a pomenuj v jednom kroku
+experiment2 <- read_delim(
+  "experiment2.csv", 
+  delim = ":",
+  escape_double = FALSE, 
+  col_names = c("id", "name", "height", "weight", "treatment", "value"),
+  col_types = cols(
+    id = col_integer(),
+    name = col_character(),
+    height = col_integer(), 
+    weight = col_integer(),
+    treatment = col_factor(levels = c("control", "group A", "group B")),
+    value = col_double()
+  ),
+  locale = locale(decimal_mark = ",")
+)
+
+experiment2
+```
+
+**Rozdiel oproti Úlohe 2:**
+
+- `col_names = FALSE` alebo `col_names = c(...)` - súbor nemá hlavičku
+- Musíme explicitne zadať názvy stĺpcov
+
+---
+
+## Úloha 4: Kódovanie znakov (encoding)
+
+**Zadanie:** Načítaj dáta zo súboru "experiment3.csv" do premennej `experiment3`.
+
+**Problém:** Súbor obsahuje diakritiku (české/slovenské znaky), ale nie je v UTF-8 kódovaní!
+
+### Riešenie
+
+```{r nacitanie-experiment3}
+library(readr)
+
+# Krok 1: Skús uhádnuť kódovanie
+kodovanie <- guess_encoding("experiment3.csv")
+kodovanie
+```
+
+**Čo je `guess_encoding()`?**
+
+- Funkcia z balíka **readr**
+- Analyzuje súbor a odhaduje pravdepodobné kódovanie
+- Vracia tabuľku s možnými kódovaniami a ich pravdepodobnosťou
+
+```{r nacitanie-experiment3-s-kodovanim}
+# Krok 2: Načítaj s nastaveným kódovaním
+experiment3 <- read_delim(
+  "experiment3.csv", 
+  delim = ":", 
+  escape_double = FALSE, 
+  col_types = cols(
+    id = col_integer(), 
+    height = col_integer(),
+    weight = col_integer(), 
+    treatment = col_factor(levels = c("control", "group A", "group B")), 
+    value = col_double()
+  ), 
+  locale = locale(
+    decimal_mark = ",",
+    grouping_mark = ".", 
+    encoding = "ISO-8859-2"  # <-- Toto je kľúčové!
+  ),
+  trim_ws = TRUE, 
+  skip = 8
+)
+
+experiment3
+```
+
+**Dôležité poznámky k kódovaniu:**
+
+- **UTF-8** - moderný štandard, podporuje všetky jazyky
+- **ISO-8859-2** (Latin-2) - stredoeurópske jazyky (čeština, slovenčina, poľština)
+- **Windows-1250** - Windows verzia stredoeurópskeho kódovania
+- Nesprávne kódovanie = "krakozyabry" namiesto diakritiky (č → Ä, š → Å¡)
+
+### Časté kódovania v Českej republike a na Slovensku
+
+| Kódovanie | Použitie |
+|-----------|----------|
+| UTF-8 | Moderné súbory, internet, odporúčané |
+| ISO-8859-2 | Staršie Linux systémy |
+| Windows-1250 | Staršie Windows súbory |
+| CP852 | Staré DOS súbory |
+
+---
+
+## Úloha 5: Kontrola integrity dát
+
+**Zadanie:** Skontroluj integritu načítaných dát v prípade tabuľky `experiment`.
+
+**Prečo kontrolovať?**
+
+- Data sa mohli pokaziť pri načítavaní
+- Môžu byť prítomné neočakávané hodnoty
+- Dátové typy nemusia sedieť
+
+### Riešenie
+
+```{r kontrola-integrity}
+# 1. Kontrola počtu riadkov
+# Pôvodný súbor má 351 riadkov, ale 9 je hlavička
+# Očakávame: 351 - 9 = 342 riadkov
+nrow(experiment)
+
+# 2. Kontrola prvých riadkov
+# Porovnaj s pôvodným súborom - vyzerajú dáta správne?
+head(experiment)
+
+# 3. Kontrola posledných riadkov  
+# Načítali sa všetky dáta až do konca?
+tail(experiment)
+
+# 4. Súhrnné statistiky
+# Sleduj minima, maxima a počet chýbajúcich hodnot (NA's)
+summary(experiment)
+
+# 5. Kontrola dátových typov
+str(experiment)
+
+# 6. Kontrola unikátnych hodnôt faktoru
+levels(experiment$treatment)
+table(experiment$treatment)
+```
+
+**Checklist kontroly integrity:**
+
+- ✅ **Počet riadkov** - sedí s očakávaním?
+- ✅ **Prvé a posledné riadky** - vyzerajú rozumne?
+- ✅ **Dátové typy** - integer, double, factor?
+- ✅ **Chýbajúce hodnoty** - sú kde majú byť?
+- ✅ **Rozsahy hodnôt** - minima/maxima dávajú zmysel?
+- ✅ **Faktory** - správne úrovne?
+
+### Alternatívne nástroje na kontrolu
+
+**V LibreOffice Calc:**
+```
+File > Open > Vyberte .csv > Nastavte oddeľovač a kódovanie
+```
+
+**Linux príkazový riadok:**
+```bash
+head experiment.csv      # Prvých 10 riadkov
+tail experiment.csv      # Posledných 10 riadkov
+wc -l experiment.csv     # Počet riadkov
+less experiment.csv      # Prezeranie celého súboru
+```
+
+---
+
+# Ukladanie dát
+
+Teraz sa naučíme ako ukladať dáta do rôznych formátov.
+
+---
+
+## Úloha 1: Ukladanie do .RData formátu
+
+**Zadanie:** Ulož tabuľky `txhousing`, `tec00001` a `experiment` do natívneho binárneho súboru `results.RData`. Vymaž všetky premenné z pracovného prostredia R a znovu dáta zo súboru `results.RData` načítaj.
+
+### Riešenie
+
+```{r ukladanie-rdata}
+# Krok 1: Vytvor cestu k súboru v dočasnom adresári
+# fp = file path
+# tempdir() stratí sa pri reštarte/ukončení R
+fp <- file.path(tempdir(), "results.RData")
+fp
+
+# Krok 2: Ulož dáta (môžeš uložiť viacero objektov naraz)
+save(txhousing, tec00001, experiment, file = fp)
+
+# Krok 3: Vymaž všetky premenné z prostredia
+rm(list = ls())
+
+# Problém: fp je tiež vymazaný!
+# fp  # Táto premenná už neexistuje
+
+# Krok 4: Znovu nastav cestu (lebo sme ju vymazali)
+fp <- file.path(tempdir(), "results.RData")
+fp
+
+# Krok 5: Znovu načítaj dáta
+# Premenné txhousing, tec00001, experiment sa objavia v environment
+load(file = fp)
+
+# Overenie
+ls()  # Zobraz všetky premenné v environment
+```
+
+**Dôležité poznámky k .RData:**
+
+- ✅ **Uloží názvy premenných** - `save()` uloží objekty pod ich pôvodnými názvami
+- ✅ **Viac objektov naraz** - môžeš uložiť koľko chceš
+- ✅ **Zachová dátové typy** - faktory, dátumy, všetko ostáva ako bolo
+- ❌ **Problém** - pri `load()` premenné "preskočia" do environment s pevnými názvami
+- ❌ **Riziko** - môže prepísať existujúce premenné!
+
+### Kde sa nachádzajú dočasné súbory?
+
+```{r temp-directory}
+# Zisti umiestnenie dočasného adresára
+tempdir()
+
+# Zobraz všetky súbory v dočasnom adresári
+list.files(tempdir())
+```
+
+---
+
+## Úloha 2: Ukladanie do CSV formátu
+
+**Zadanie:** Ulož tabuľky `txhousing`, `tec00001` a `experiment` do súboru "results.csv" typu CSV.
+
+**POZOR!** Toto je "trik question" - do jedného CSV súboru je možné uložiť len **jednu** tabuľku!
+
+### Riešenie
+
+```{r ukladanie-csv}
+# Do jedného CSV súboru môžeme uložiť len JEDNU tabuľku
+fp <- file.path(tempdir(), "results.csv")
+
+# Uloženie jednej tabuľky
+write_csv(txhousing, fp)
+
+# Overenie - načítanie späť
+txhousing_loaded <- read_csv(fp)
+head(txhousing_loaded)
+```
+
+**Poznámky k `write_csv()`:**
+
+- ✅ **Jednoduchý formát** - ľahko sa otvorí v Exceli, LibreOffice
+- ✅ **Čitateľný človekom** - môžeš ho otvoriť v textovom editore
+- ❌ **Len jedna tabuľka** - nemôžeš uložiť viac tabuliek naraz
+- ❌ **Stráca dátové typy** - faktory, dátumy treba znovu definovať pri načítaní
+- ❌ **Väčšie súbory** - nekomprimované
+
+**Ako uložiť viac tabuliek?**
+
+```{r ukladanie-viac-csv, eval=FALSE}
+# Riešenie 1: Viac súborov
+write_csv(txhousing, file.path(tempdir(), "txhousing.csv"))
+write_csv(tec00001, file.path(tempdir(), "tec00001.csv"))
+write_csv(experiment, file.path(tempdir(), "experiment.csv"))
+
+# Riešenie 2: Použi .RData alebo .rds (lepšie)
+save(txhousing, tec00001, experiment, file = "results.RData")
+```
+
+---
+
+# RDS - Ukladanie jednotlivých objektov
+
+RDS je binárny formát pre **jeden objekt** R. Na rozdiel od .RData, pri načítaní RDS **ty rozhoduješ** do akej premennej sa objekt načíta.
+
+---
+
+## Úloha 1: Ukladanie a načítanie RDS
+
+**Zadanie:** Ulož tabuľku `txhousing` do súboru typu RDS a načítaj ju späť do prostredia R.
+
+### Riešenie
+
+```{r ukladanie-rds}
+library(readr)
+
+fp <- file.path(tempdir(), "txhousing.rds")
+
+# Spôsob 1: Zápis do NEkomprimovaného súboru
+# write_rds(txhousing, file = fp)
+
+# Spôsob 2: Zápis do komprimovaného súboru (ODPORÚČANÉ)
+write_rds(txhousing, file = fp, compress = "bz2")
+
+# Načítanie dát z RDS
+# DÔLEŽITÉ: TY rozhoduješ do akej premennej sa to načíta!
+txhousing_loaded <- read_rds(fp)
+
+# Alebo prepíš originál
+txhousing <- read_rds(fp)
+
+# Overenie veľkosti súboru
+file.info(fp)$size / 1024  # veľkosť v KB
+```
+
+**Typy kompresie:**
+
+| Kompresia | Rýchlosť | Veľkosť súboru | Odporúčanie |
+|-----------|----------|----------------|-------------|
+| `"none"` | Najrýchlejšia | Najväčší | Pre dočasné súbory |
+| `"gzip"` | Stredná | Stredná | Dobrý kompromis |
+| `"bz2"` | Najpomalšia | Najmenší | Pre archiváciu |
+| `"xz"` | Pomalá | Veľmi malý | Alternatíva k bz2 |
+
+---
+
+## Úloha 2: Ukladanie viacerých objektov do RDS
+
+**Zadanie:** Ulož tabuľky `txhousing`, `tec00001` a `experiment` do súboru typu RDS a načítaj ich do prostredia R.
+
+**Problém:** RDS môže obsahovať len **jeden objekt**!
+
+**Riešenie:** Viac objektov musíme spojiť do **zoznamu** (list).
+
+### Riešenie
+
+```{r ukladanie-viac-rds}
+fp <- file.path(tempdir(), "results.rds")
+
+# Uloženie dát: spojíme do pomenovaného zoznamu
+write_rds(
+  list(
+    txhousing = txhousing,
+    tec00001 = tec00001,
+    experiment = experiment
+  ),
+  file = fp,
+  compress = "bz2"
+)
+
+# Načítanie dát: načítame ako zoznam
+results <- read_rds(fp)
+
+# Vybalenie zo zoznamu - prístup cez $
+txhousing_loaded <- results$txhousing
+tec00001_loaded <- results$tec00001
+experiment_loaded <- results$experiment
+
+# Vyčistenie - už nepotrebujeme zoznam
+rm(results)
+
+# Overenie
+ls()
+```
+
+**Porovnanie .RData vs .RDS:**
+
+| Vlastnosť | .RData | .RDS |
+|-----------|--------|------|
+| Počet objektov | Viacero | Jeden (alebo list) |
+| Názov premennej | Fixný (z `save()`) | Voľný (pri `read_rds()`) |
+| Načítanie | `load()` - automaticky | `read_rds()` - priradíš |
+| Kompresia | Áno | Áno, voliteľná |
+| Použitie | Viacero tabuliek | Jedna tabuľka/objekt |
+
+**Kedy použiť čo?**
+
+- ✅ **.RData** - viacero súvisiacich objektov (projekt, analýza)
+- ✅ **.RDS** - jeden hlavný objekt (výsledok modelu, veľká tabuľka)
+- ✅ **.csv** - zdieľanie dát s ľuďmi mimo R
+
+---
+
+# Trocha čiernej mágie na závěr
+
+Táto sekcia pokrýva špeciálne formáty ako SPSS a prácu s labelmi.
+
+---
+
+## Úloha 1: Načítanie SPSS súboru
+
+**Zadanie:** Načítaj dáta *Annual national accounts* stiahnuté z Eurostatu vo formáte SPSS. Dátový súbor sa volá "nama_10_gdp.sav".
+
+**SPSS (.sav)** je formát štatistického softvéru SPSS. Obsahuje **labely** - popisky hodnôt.
+
+### Riešenie
+
+```{r nacitanie-spss, eval=FALSE}
+library(haven)
+
+# Načítanie SPSS súboru
+nataccounts <- read_spss("nama_10_gdp.sav")
+
+nataccounts
+```
+
+**Výstup:**
+```
+# A tibble: 1,350 × 6
+   TIME        GEO                   UNIT       NA_ITEM    value FLAGS_FOOTNOTES
+   <chr+lbl>   <chr+lbl>             <chr+lbl>  <chr+lbl>  <chr> <chr+lbl>      
+ 1 2007 [2007] EU28 [European Union… CLV… [Cha… B1GQ [Gro… 101.9 ""             
+ 2 2007 [2007] EU28 [European Union… CP_… [Cur… B1GQ [Gro… 1298… ""
+```
+
+**Čo je `<chr+lbl>`?**
+
+- **chr** = character (text)
+- **lbl** = label (popisok)
+- Hodnota "2007" má popisok "[2007]"
+- Hodnota "EU28" má popisok "[European Union (28 countries)]"
+
+**Balík haven:**
+
+Balík **haven** slúži na načítanie dát z štatistických programov:
+
+- `read_spss()` - SPSS (.sav, .por)
+- `read_stata()` - Stata (.dta)
+- `read_sas()` - SAS (.sas7bdat, .sas7bcat)
+
+---
+
+## Úloha 2: Práca s labelmi
+
+**Zadanie:** Premenné `TIME` a `GEO` obsahujú popisky. Odstráň ich tak, že ich u premennej `TIME` zahodíš a premennú `GEO` preveď na faktor.
+
+### Riešenie
+
+```{r prace-s-labelmi, eval=FALSE}
+library(haven)
+
+# Načítame dáta
+nataccounts <- read_spss("nama_10_gdp.sav")
+
+# Odstránenie labelov z TIME - zostane len hodnota
+nataccounts$TIME <- zap_labels(nataccounts$TIME)
+
+# Konverzia GEO na faktor - použije labely ako úrovne faktoru
+nataccounts$GEO <- as_factor(nataccounts$GEO)
+
+nataccounts
+```
+
+**Výstup:**
+```
+# A tibble: 1,350 × 6
+   TIME  GEO                         UNIT       NA_ITEM    value FLAGS_FOOTNOTES
+   <chr> <fct>                       <chr+lbl>  <chr+lbl>  <chr> <chr+lbl>      
+ 1 2007  European Union (28 countri… CLV… [Cha… B1GQ [Gro… 101.9 ""             
+ 2 2007  European Union (28 countri… CP_… [Cur… B1GQ [Gro… 1298… ""
+```
+
+**Funkcie na prácu s labelmi:**
+
+| Funkcia | Účel |
+|---------|------|
+| `zap_labels()` | Odstráni labely, zostane len hodnota |
+| `as_factor()` | Konvertuje na faktor, použije labely ako úrovne |
+| `zap_label()` | Odstráni len popisok premennej (nie hodnôt) |
+| `as_character()` | Konvertuje na text, použije labely |
+
+### Príklad rozdielov
+
+```{r labely-priklad, eval=FALSE}
+# Originál
+nataccounts$GEO
+# <chr+lbl> "EU28" [European Union (28 countries)]
+
+# Po zap_labels()
+zap_labels(nataccounts$GEO)
+# <chr> "EU28"
+
+# Po as_factor()
+as_factor(nataccounts$GEO)
+# <fct> European Union (28 countries)
+```
+
+**Kedy použiť čo?**
+
+- **`zap_labels()`** - chceš len kódy (EU28, CZ, SK)
+- **`as_factor()`** - chceš popisné názvy ako faktor (pre grafy, tabuľky)
+- **`as_character()`** - chceš popisné názvy ako text
+
+---
+
+# Zhrnutie dôležitých konceptov
+
+## Funkcie na načítanie a ukladanie dát
+
+| Funkcia | Účel | Balík |
+|---------|------|-------|
+| `load()` | Načítanie .RData súborov | base R |
+| `save()` | Uloženie do .RData (viac objektov) | base R |
+| `read_rds()` | Načítanie .rds súborov (jeden objekt) | readr |
+| `write_rds()` | Uloženie do .rds | readr |
+| `read_csv()` | CSV súbory (čiarka) | readr |
+| `write_csv()` | Zápis do CSV | readr |
+| `read_tsv()` | TSV súbory (tabulátor) | readr |
+| `write_tsv()` | Zápis do TSV | readr |
+| `read_delim()` | Vlastný oddeľovač | readr |
+| `write_delim()` | Zápis s vlastným oddeľovačom | readr |
+| `read_excel()` | Excel súbory | readxl |
+| `read_lines()` | Surový text | readr |
+| `guess_encoding()` | Odhaduje kódovanie súboru | readr |
+| `read_spss()` | SPSS súbory (.sav) | haven |
+| `read_stata()` | Stata súbory (.dta) | haven |
+| `read_sas()` | SAS súbory | haven |
+| `zap_labels()` | Odstráni labely z hodnôt | haven |
+| `as_factor()` | Konvertuje na faktor (použije labely) | haven |
+
+## Často používané parametre
+
+```{r parametre-tabulka, echo=FALSE}
+library(knitr)
+
+parametre <- data.frame(
+  Parameter = c("col_types", "na", "skip", "col_names", "locale", "delim", "range", "trim_ws", "encoding"),
+  Popis = c(
+    "Definuje typy stĺpcov",
+    "Definuje hodnotu pre chýbajúce dáta",
+    "Počet riadkov na preskočenie",
+    "Manuálne názvy stĺpcov alebo FALSE",
+    "Nastavenie jazyka/formátu (desatinná čiarka)",
+    "Oddeľovač hodnot",
+    "Rozsah buniek (Excel)",
+    "Odstránenie medzier",
+    "Kódovanie znakov (v locale)"
+  ),
+  Priklad = c(
+    'cols(x = col_integer())',
+    'na = ":"',
+    'skip = 8',
+    'col_names = c("a", "b")',
+    'locale(decimal_mark = ",")',
+    'delim = ":"',
+    'range = "A4:Y47"',
+    'trim_ws = TRUE',
+    'locale(encoding = "ISO-8859-2")'
+  )
+)
+
+kable(parametre, caption = "Často používané parametre pri načítavaní dát")
+```
+
+## Typy stĺpcov (col_types)
+
+- **`col_character()`** - text
+- **`col_integer()`** - celé číslo
+- **`col_double()`** - desatinné číslo
+- **`col_number()`** - číslo s flexibilným formátom
+- **`col_date(format = "...")`** - dátum
+- **`col_factor(levels = c(...))`** - faktor
+- **`col_skip()`** - preskoč stĺpec
+
+### Skrátená notácia
+
+```r
+col_types = "cin"  # character, integer, number
+col_types = "cnnnnnn"  # character + 6x number
+```
+
+## Best practices
+
+1. **Vždy si najprv pozri surový súbor** pomocou `read_lines()`
+2. **Explicitne definuj typy stĺpcov** pomocou `col_types`
+3. **Kontroluj problémy** pomocou `problems()`
+4. **Skontroluj kódovanie** pomocou `guess_encoding()` ak máš diakritiku
+5. **Používaj tibble** (výstup z readr) namiesto data.frame
+6. **Pre Excel súbory** používaj balík **readxl** (nie **xlsx**)
+7. **Dávaj pozor na locale** - desatinná čiarka vs. bodka!
+8. **Vždy kontroluj integritu** - `nrow()`, `head()`, `tail()`, `summary()`
+9. **Pre ukladanie viacerých objektov** použi `.RData`, pre jeden objekt `.rds`
+10. **Používaj dočasný adresár** `tempdir()` pre testovacie súbory
+11. **Komprimuj veľké súbory** - `compress = "bz2"` v `write_rds()`
+12. **Pre SPSS/Stata/SAS** používaj balík **haven**
+13. **CSV je univerzálny**, ale stráca dátové typy a labely
+14. **.RDS zachováva všetko** - dátové typy, faktory, atribúty
+
+## Kódovanie znakov (Character encoding)
+
+Pri práci s diakritikou je dôležité správne nastaviť kódovanie!
+
+```{r kodovanie-tabulka, echo=FALSE}
+library(knitr)
+
+kodovanie_df <- data.frame(
+  Kodovanie = c("UTF-8", "ISO-8859-2", "Windows-1250", "CP852"),
+  Pouzitie = c(
+    "Moderné súbory, internet (ODPORÚČANÉ)",
+    "Staršie Linux systémy, Eurostat",
+    "Staršie Windows súbory",
+    "Staré DOS súbory"
+  ),
+  Jazyky = c(
+    "Všetky jazyky sveta",
+    "Stredoeurópske jazyky (CZ, SK, PL, HU)",
+    "Stredoeurópske jazyky (CZ, SK, PL, HU)",
+    "Stredoeurópske jazyky"
+  ),
+  Poznamka = c(
+    "✅ Vždy preferuj tento formát",
+    "Časté v EU dátach",
+    "Časté v starších Excel súboroch",
+    "Už zastaralé"
+  )
+)
+
+kable(kodovanie_df, caption = "Prehľad kódovaní používaných v ČR a SR")
+```
+
+**Ako poznať problém s kódovaním?**
+
+- Namiesto **č** vidíš **Ä**
+- Namiesto **š** vidíš **Å¡**
+- Namiesto **ž** vidíš **Å¾**
+- Namiesto **á** vidíš **Ã¡**
+
+**Riešenie:**
+
+```r
+# 1. Urči kódovanie
+guess_encoding("subor.csv")
+
+# 2. Načítaj s správnym kódovaním
+read_csv("subor.csv", locale = locale(encoding = "ISO-8859-2"))
+```
+
+## Porovnanie formátov súborov
+
+```{r formaty-tabulka, echo=FALSE}
+library(knitr)
+
+formaty_df <- data.frame(
+  Format = c(".RData", ".rds", ".csv", ".xlsx", ".sav/.dta"),
+  'Počet_objektov' = c("Viacero", "Jeden", "Jeden", "Viacero listov", "Jeden"),
+  'Zachováva_typy' = c("✅ Áno", "✅ Áno", "❌ Nie", "⚠️ Čiastočne", "✅ Áno + labely"),
+  Kompresia = c("✅ Áno", "✅ Áno", "❌ Nie (ale .gz)", "✅ Áno", "✅ Áno"),
+  'Čitateľnosť' = c("❌ Binárny", "❌ Binárny", "✅ Text", "❌ Binárny", "❌ Binárny"),
+  'Univerzálnosť' = c("Jen R", "Jen R", "✅ Všade", "✅ Všade", "SPSS/Stata/SAS + R"),
+  Použitie = c(
+    "Projekt, analýza",
+    "Jeden výsledok",
+    "Zdieľanie",
+    "Excel tabulky",
+    "Štat. programy"
+  )
+)
+
+kable(formaty_df, 
+      col.names = c("Formát", "Počet objektov", "Zachováva typy", "Kompresia", 
+                    "Čitateľnosť", "Univerzálnosť", "Použitie"),
+      caption = "Porovnanie formátov na ukladanie dát")
+```
+
+### Rozhodovací strom - aký formát použiť?
+
+```
+Potrebuješ zdieľať dáta s niekým mimo R?
+├─ ÁNO → .csv alebo .xlsx
+└─ NIE → Pokračuj ďalej
+         │
+         Ukladáš viacero objektov naraz?
+         ├─ ÁNO → .RData
+         └─ NIE → .rds (s kompresiou)
+```
+
+---
+
+# Dodatočné zdroje
+
+## Dokumentácia
+
+- **Kapitola 10**: Načítání a ukládání dat ze souborů  
+  https://aved.econ.muni.cz/reading_and_writing_data_from_files.html
+
+- **Dokumentácia readr** (CSV, TSV, RDS):  
+  https://readr.tidyverse.org/
+
+- **Dokumentácia readxl** (Excel):  
+  https://readxl.tidyverse.org/
+
+- **Dokumentácia haven** (SPSS, Stata, SAS):  
+  https://haven.tidyverse.org/
+
+## Užitočné cheatsheets
+
+- **Data Import Cheat Sheet**:  
+  https://github.com/rstudio/cheatsheets/blob/main/data-import.pdf
+
+## Eurostat API
+
+- **Balík eurostat**:  
+  https://ropengov.github.io/eurostat/
+
+```r
+# Priame načítanie z Eurostatu
+install.packages("eurostat")
+library(eurostat)
+tec00001 <- get_eurostat("tec00001")
+```
+
+---
+
+# Zhrnutie cvičenia
+
+V tomto cvičení si sa naučil/a:
+
+✅ **Načítať dáta** z rôznych formátov (.RData, .csv, .tsv, .xlsx, .sav)  
+✅ **Riešiť problémy** s kódovaním, oddeľovačmi, hlavičkami  
+✅ **Kontrolovať integritu** načítaných dát  
+✅ **Ukladať dáta** do rôznych formátov  
+✅ **Rozhodovať** ktorý formát je najvhodnejší  
+✅ **Pracovať s labelmi** v SPSS súboroch  
+
+**Kľúčové poznatky:**
+
+- 📌 Vždy začni s `read_lines()` - pozri si surový súbor
+- 📌 Explicitne definuj `col_types` - predchádzaj problémom
+- 📌 `.rds` je lepší ako `.RData` pre jeden objekt
+- 📌 CSV je univerzálny, ale stráca dátové typy
+- 📌 Kontroluj kódovanie pri dátach s diakritikou
+
+

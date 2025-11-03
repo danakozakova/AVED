@@ -1,0 +1,684 @@
+---
+title: "Cvičení 13: Reproducible Research"
+subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
+author: "Vaše meno"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: cosmo
+    highlight: tango
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+# 📚 Úvod
+
+V tomto cvičení se naučíte principy **reproducible research** (reprodukovatelného výzkumu):
+
+- **Organizace projektu** - správná struktura složek a souborů
+- **RMarkdown** - vytváření dynamických reportů
+- **Literate programming** - propojení kódu a textu
+- **Verze kontrola** - Git a GitHub
+- **Dokumentace** - komentáře a README soubory
+- **Best practices** - dobré návyky pro spolehlivou práci
+
+Cílem je, aby vaše analýzy byly:
+- ✅ **Reprodukovatelné** - kdokoliv je může zopakovat
+- ✅ **Transparentní** - proces je viditelný a srozumitelný
+- ✅ **Organizované** - snadné najít a pochopit
+
+# 📦 Načítání balíků
+
+```{r packages}
+# Načtěte potřebné balíky
+
+
+```
+
+---
+
+# 🎄 Vánoce: Reproducible Research
+
+## Co je reproducible research?
+
+**Reproducible research** znamená, že:
+- Vaše výsledky lze zopakovat s použitím stejných dat a kódu
+- Celý proces od dat po výsledky je dokumentovaný
+- Další výzkumníci mohou vaši práci ověřit a navázat na ni
+
+## Proč je to důležité?
+
+- 🔬 **Vědecká integrita** - ověřitelnost výsledků
+- 🔄 **Efektivita** - snadná aktualizace analýz
+- 👥 **Spolupráce** - týmová práce je jednodušší
+- 📖 **Vzdělávání** - učení se z práce druhých
+- 💼 **Profesionalita** - standardní praxe ve výzkumu i byznysu
+
+## Klíčové principy
+
+1. **Jeden projekt = jeden adresář** - vše pohromadě
+2. **Jasná struktura** - standardizované složky
+3. **Relativní cesty** - funguje všude
+4. **Dokumentace** - komentáře a README
+5. **Version control** - sledování změn
+
+---
+
+# 📁 Organizace projektu
+
+Správná organizace projektu je základ reproducible research.
+
+## Doporučená struktura
+
+```
+muj-projekt/
+│
+├── data/
+│   ├── raw/              # Původní, nedotčená data
+│   └── processed/        # Zpracovaná data
+│
+├── R/                    # R skripty
+│   ├── 01_cleaning.R
+│   ├── 02_analysis.R
+│   └── functions.R
+│
+├── output/
+│   ├── figures/          # Grafy
+│   └── tables/           # Tabulky
+│
+├── docs/                 # Dokumentace a reporty
+│
+├── README.md             # Popis projektu
+├── muj-projekt.Rproj    # RStudio projekt
+└── analysis.Rmd          # Hlavní analýza
+```
+
+## Úkol 1: Vytvoření struktury projektu
+
+**Zadání:** Vytvořte nový RStudio projekt s doporučenou strukturou složek.
+
+```{r ukol_org_1, eval=FALSE}
+# Vytvoření adresářové struktury
+
+# Vytvořte složky:
+# - data/raw
+# - data/processed
+# - R
+# - output/figures
+# - output/tables
+# - docs
+
+
+```
+
+**Poznámka:** V RStudio použijte File → New Project → New Directory → New Project
+
+## Úkol 2: README soubor
+
+**Zadání:** Vytvořte README.md soubor s popisem projektu.
+
+README by mělo obsahovat:
+- Název projektu
+- Stručný popis
+- Autora
+- Požadavky (R verze, balíky)
+- Strukturu projektu
+- Jak spustit analýzu
+
+```markdown
+# Název projektu
+
+## Popis
+Stručný popis projektu a jeho cílů.
+
+## Autor
+Jméno autora
+
+## Požadavky
+- R verze 4.x nebo vyšší
+- Balíky: tidyverse, ggplot2, ...
+
+## Struktura projektu
+- `data/` - Data
+- `R/` - Skripty
+- `output/` - Výstupy
+
+## Použití
+1. Otevřete projekt v RStudio
+2. Spusťte `analysis.Rmd`
+```
+
+---
+
+# 📄 Vytvoření reportu
+
+RMarkdown umožňuje vytvářet dynamické reporty propojující text, kód a výstupy.
+
+## Úkol 1: Základní RMarkdown dokument
+
+**Zadání:** Vytvořte nový RMarkdown dokument.
+
+```{r ukol_report_1, eval=FALSE}
+# V RStudio: File → New File → R Markdown...
+
+
+```
+
+Struktura RMarkdown dokumentu:
+- **YAML hlavička** - metadata (title, author, output)
+- **Text** - Markdown formátování
+- **Code chunks** - R kód
+- **Inline code** - kód v textu
+
+## Úkol 2: YAML hlavička
+
+**Zadání:** Nastavte YAML hlavičku s pokročilými možnostmi.
+
+```yaml
+---
+title: "Můj report"
+author: "Vaše jméno"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: cosmo
+    highlight: tango
+    code_folding: show
+    df_print: paged
+---
+```
+
+## Úkol 3: Markdown formátování
+
+**Zadání:** Procvičte základní Markdown syntaxi.
+
+```{r ukol_report_3, eval=FALSE}
+# Použijte v RMarkdown dokumentu:
+
+# # Nadpis úrovně 1
+# ## Nadpis úrovně 2
+# ### Nadpis úrovně 3
+#
+# **tučný text**
+# *kurzíva*
+# ~~přeškrtnutý text~~
+#
+# - Nečíslovaný seznam
+# - Položka 2
+#
+# 1. Číslovaný seznam
+# 2. Položka 2
+#
+# [odkaz](https://www.example.com)
+# ![obrázek](cesta/k/obrazku.png)
+#
+# > Citace
+#
+# `inline kód`
+#
+# ```
+# blok kódu
+# ```
+
+
+```
+
+## Úkol 4: Code chunks
+
+**Zadání:** Vytvořte různé typy code chunků s různými možnostmi.
+
+```{r ukol_report_4}
+# Základní chunk
+
+
+```
+
+```{r ukol_report_4_options, echo=FALSE}
+# Chunk s možnostmi:
+# echo = FALSE       - nezobrazí kód
+# eval = FALSE       - nespustí kód
+# include = FALSE    - nezobrazí nic (ani kód ani výstup)
+# warning = FALSE    - potlačí varování
+# message = FALSE    - potlačí zprávy
+# fig.width = 8      - šířka grafu
+# fig.height = 6     - výška grafu
+
+
+```
+
+## Úkol 5: Inline kód
+
+**Zadání:** Použijte inline kód pro dynamické hodnoty v textu.
+
+```{r ukol_report_5}
+# Například:
+# Průměrná hodnota je `r mean(x)`.
+# Analýza byla provedena dne `r Sys.Date()`.
+
+
+```
+
+## Úkol 6: Načtení a zobrazení dat
+
+**Zadání:** Načtěte data a vytvořte přehlednou tabulku.
+
+```{r ukol_report_6}
+# Načtěte data
+
+
+# Zobrazení tabulky pomocí kable nebo DT
+
+
+```
+
+## Úkol 7: Vizualizace
+
+**Zadání:** Vytvořte graf a nastavte jeho velikost a popisky.
+
+```{r ukol_report_7, fig.cap="Popis grafu"}
+# Vytvořte ggplot graf
+
+
+```
+
+## Úkol 8: Tabulka výsledků
+
+**Zadání:** Vytvořte tabulku s výsledky analýzy.
+
+```{r ukol_report_8}
+# Popisné statistiky
+
+
+# Regresní výsledky
+
+
+```
+
+## Úkol 9: Child documents
+
+**Zadání:** Rozdělte dlouhý report na více souborů.
+
+```{r ukol_report_9, child='sections/part1.Rmd', eval=FALSE}
+# V hlavním dokumentu:
+# ```{r child='sections/intro.Rmd'}
+# ```
+
+
+```
+
+## Úkol 10: Parametrizované reporty
+
+**Zadání:** Vytvořte parametrizovaný report.
+
+```yaml
+---
+title: "Parametrizovaný report"
+params:
+  year: 2023
+  country: "Czech Republic"
+  data_file: "data/raw/data.csv"
+---
+```
+
+```{r ukol_report_10, eval=FALSE}
+# Použití parametrů:
+# params$year
+# params$country
+
+
+```
+
+---
+
+# ✨ Finesy
+
+Pokročilé techniky pro profesionální reporty.
+
+## Cache
+
+```{r finesy_cache, cache=TRUE, eval=FALSE}
+# Uložení výsledků pro rychlejší kompilaci
+# Užitečné pro časově náročné výpočty
+
+
+```
+
+## Podmíněné zobrazení
+
+```{r finesy_podminky, eval=FALSE}
+# Podmíněné zobrazení obsahu podle parametrů
+
+
+```
+
+## Vlastní CSS
+
+```{r finesy_css, eval=FALSE}
+# V YAML:
+# output:
+#   html_document:
+#     css: styles.css
+
+
+```
+
+## Různé výstupní formáty
+
+```yaml
+---
+output:
+  html_document:
+    toc: true
+  pdf_document:
+    toc: true
+  word_document:
+    toc: true
+---
+```
+
+## Cross-references
+
+```{r finesy_crossref, eval=FALSE}
+# Odkazy na sekce, tabulky a grafy
+# Vyžaduje bookdown balík
+
+
+```
+
+---
+
+# 🔄 Version Control (Git)
+
+## Základní Git příkazy
+
+```bash
+# Inicializace repositáře
+git init
+
+# Přidání souborů
+git add .
+
+# Commit
+git commit -m "Initial commit"
+
+# Status
+git status
+
+# Historie
+git log
+
+# Push na GitHub
+git push origin main
+```
+
+## .gitignore
+
+Soubory, které by neměly být verzovány:
+
+```
+# .gitignore
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+data/raw/*
+*.html
+*.pdf
+```
+
+## Best practices pro Git
+
+- 📝 Popisné commit zprávy
+- 🔄 Časté commity malých změn
+- 🌿 Použití branchí pro nové funkce
+- 🚫 Neverzovat velké soubory nebo data
+- 📖 README a dokumentace
+
+---
+
+# 💡 Best Practices
+
+## Pojmenování souborů
+
+✅ **Dobré:**
+```
+01_data-cleaning.R
+02_exploratory-analysis.R
+03_model-fitting.R
+figure-01_scatter-plot.png
+```
+
+❌ **Špatné:**
+```
+final_FINAL.R
+untitled.R
+graf 1.png
+data copy 2.csv
+```
+
+**Pravidla:**
+- Malá písmena
+- Bez mezer (použijte `-` nebo `_`)
+- Číselné prefixy pro pořadí
+- Popisné názvy
+
+## Komentování kódu
+
+```r
+# ✅ Dobré komentáře - vysvětlují PROČ
+# Používáme log transformaci kvůli zkosení dat
+data <- data %>%
+  mutate(log_income = log(income))
+
+# ❌ Špatné komentáře - popisují CO (to je zřejmé)
+# Vytvoření nového sloupce
+data$new_col <- data$x + data$y
+```
+
+## Relativní cesty
+
+```r
+# ✅ Dobře - relativní cesta
+read_csv("data/raw/data.csv")
+
+# ❌ Špatně - absolutní cesta
+read_csv("C:/Users/Jmeno/Documents/projekt/data/raw/data.csv")
+```
+
+## Reproducible seeds
+
+```r
+# Pro reprodukovatelné náhodné výsledky
+set.seed(123)
+```
+
+## Session info
+
+```{r session_info, eval=FALSE}
+# Na konci reportu
+sessionInfo()
+# nebo
+devtools::session_info()
+```
+
+---
+
+# 📊 Příklady výstupních formátů
+
+## HTML dokument
+
+```yaml
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    code_download: true
+    code_folding: hide
+```
+
+## PDF dokument
+
+```yaml
+output:
+  pdf_document:
+    toc: true
+    number_sections: true
+    latex_engine: xelatex
+```
+
+## Word dokument
+
+```yaml
+output:
+  word_document:
+    reference_docx: template.docx
+```
+
+## Prezentace
+
+```yaml
+output:
+  ioslides_presentation:
+    widescreen: true
+  slidy_presentation: default
+  beamer_presentation:
+    theme: "Madrid"
+```
+
+## Dashboard (flexdashboard)
+
+```yaml
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+```
+
+---
+
+# 🎯 Checklist reproducible research
+
+- [ ] Používám RStudio projekty (.Rproj)
+- [ ] Mám jasnou adresářovou strukturu
+- [ ] Používám relativní cesty
+- [ ] Data jsou oddělen od kódu
+- [ ] Mám README soubor s popisem projektu
+- [ ] Kód je komentovaný a srozumitelný
+- [ ] Používám RMarkdown pro reporty
+- [ ] Mám nastavený Git pro verzování
+- [ ] Soubory jsou smysluplně pojmenované
+- [ ] Projekt lze spustit na jiném počítači
+- [ ] Dokumentuji session info
+- [ ] Používám set.seed() pro reprodukovatelnost
+
+---
+
+# 🔗 Užitečné odkazy
+
+## RMarkdown
+
+- [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/)
+- [R Markdown Cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)
+- [R Markdown Reference Guide](https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf)
+
+## Reproducible Research
+
+- [British Ecological Society Guide](https://www.britishecologicalsociety.org/publications/guides-to/)
+- [rOpenSci Reproducibility Guide](https://ropensci.github.io/reproducibility-guide/)
+- [The Turing Way](https://the-turing-way.netlify.app/)
+
+## Git a GitHub
+
+- [Happy Git with R](https://happygitwithr.com/)
+- [Git Handbook](https://guides.github.com/introduction/git-handbook/)
+- [GitHub Guides](https://guides.github.com/)
+
+## Projektová organizace
+
+- [Project-oriented workflow](https://www.tidyverse.org/blog/2017/12/workflow-vs-script/)
+- [R for Data Science - Workflow](https://r4ds.had.co.nz/workflow-projects.html)
+
+---
+
+# 📚 Použitá literatura
+
+- **Xie, Y., Allaire, J. J., & Grolemund, G.** (2018). *R Markdown: The Definitive Guide*. Chapman and Hall/CRC.
+- **Gandrud, C.** (2020). *Reproducible Research with R and RStudio*. CRC Press.
+- **Kitzes, J., Turek, D., & Deniz, F.** (Eds.). (2017). *The Practice of Reproducible Research*. University of California Press.
+- **Wilson, G., et al.** (2017). Good enough practices in scientific computing. *PLOS Computational Biology*, 13(6).
+
+---
+
+# 💻 Užitečné balíky
+
+```r
+# RMarkdown ekosystém
+install.packages("rmarkdown")
+install.packages("knitr")
+install.packages("bookdown")
+install.packages("blogdown")
+install.packages("pagedown")
+
+# Tabulky
+install.packages("kableExtra")
+install.packages("gt")
+install.packages("DT")
+
+# Reporty
+install.packages("flexdashboard")
+install.packages("shiny")
+
+# Dokumentace
+install.packages("roxygen2")
+install.packages("pkgdown")
+
+# Version control
+install.packages("usethis")
+install.packages("gitcreds")
+```
+
+---
+
+# 🎓 Závěrečné poznámky
+
+## Proč investovat čas do reproducibility?
+
+1. **Šetří čas v dlouhodobém horizontu** - aktualizace analýz je snadná
+2. **Zvyšuje kvalitu práce** - systematický přístup odhalí chyby
+3. **Usnadňuje spolupráci** - kolegové chápou vaši práci
+4. **Posiluje důvěru** - transparentní proces
+5. **Je to standard** - očekává se ve výzkumu i praxi
+
+## Zlatá pravidla
+
+> "Your closest collaborator is you six months ago, but you don't reply to emails."
+> - Karl Broman
+
+> "If you can't reproduce your own work after six months, what are the chances someone else will be able to?"
+
+---
+
+<div style="text-align: center; margin-top: 50px; padding: 20px; background-color: #f0f0f0; border-radius: 10px;">
+**Vytvorené pre:** MPE_AVED, Týždeň 13, ECON MUNI  
+**Dátum:** `r Sys.Date()`  
+**Tema:** Reproducible Research - Vánoční speciál 🎄
+</div>

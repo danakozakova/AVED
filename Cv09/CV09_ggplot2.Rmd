@@ -1,0 +1,564 @@
+---
+title: "Cvičení 9: ggplot2 - Vizualizace dat"
+subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
+author: "Vaše meno"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: cosmo
+    highlight: tango
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+# 📚 Úvod
+
+V tomto cvičení si procvičíte používání základních nástrojů z balíku **ggplot2**, které znáte z přednášky:
+
+- **`ggplot()`** - inicializace grafu
+- **`aes()`** - mapování proměnných na estetické vlastnosti
+- **Geomy** - `geom_point()`, `geom_line()`, `geom_bar()`, `geom_histogram()` atd.
+- **Facety** - `facet_wrap()`, `facet_grid()`
+- **Témata** - `theme_*()` a další nastavení vzhledu
+- **Škály** - `scale_*()` funkce pro úpravu os a barev
+
+# 📦 Načítání balíků
+
+```{r packages}
+# Načtěte potřebné balíky
+
+
+```
+
+---
+
+# 🔥 Cvičení na rozehřátí: Úmrtí řidičů v UK a nošení pásů
+
+Analyzujte data o úmrtích řidičů ve Velké Británii v souvislosti se zavedením povinného používání bezpečnostních pásů.
+
+## Načtení a prozkoumání dat
+
+```{r rozehnuti_data}
+# Načtěte data
+
+
+# Prozkoumejte strukturu dat
+
+
+```
+
+## Základní vizualizace
+
+```{r rozehnuti_vizualizace}
+# Vytvořte základní bodový graf
+
+
+```
+
+## Malé rozšíření...
+
+```{r rozehnuti_male_rozsireni}
+# Přidejte další estetické vlastnosti (barva, tvar bodů)
+
+
+```
+
+## Zajímavější rozšíření...
+
+```{r rozehnuti_zajimave_rozsireni}
+# Přidejte trendy, popisky, vylepšete vzhled
+
+
+```
+
+---
+
+# 💪 Cvičení A: Ve zdravém těle...
+
+Vizualizace dat o zdraví a fyzické kondici.
+
+## Načtení dat
+
+```{r ukol_a_nacteni}
+# Načtěte data
+
+
+# Zobrazení prvních řádků
+
+
+```
+
+## Úkol A.1: Explorativní vizualizace
+
+```{r ukol_a_1}
+# Vytvořte základní grafy pro pochopení dat
+
+
+```
+
+## Úkol A.2: Bodový graf s trendem
+
+```{r ukol_a_2}
+# Vytvořte scatter plot s trendovou čárou
+
+
+```
+
+## Úkol A.3: Facetování podle kategorií
+
+```{r ukol_a_3}
+# Použijte facet_wrap() nebo facet_grid()
+
+
+```
+
+## Úkol A.4: Vylepšení vzhledu
+
+```{r ukol_a_4}
+# Upravte témata, barvy a popisky
+
+
+```
+
+---
+
+# 📊 Cvičení B: Rozdělení spojité proměnné
+
+Práce s histogramy, hustotními grafy a dalšími vizualizacemi distribucí.
+
+## Načtení dat
+
+```{r ukol_b_nacteni}
+# Načtěte data
+
+
+# Prozkoumejte data
+
+
+```
+
+## Úkol B.1: Histogram
+
+```{r ukol_b_1}
+# Vytvořte histogram spojité proměnné
+
+
+```
+
+## Úkol B.2: Hustotní graf
+
+```{r ukol_b_2}
+# Vytvořte density plot
+
+
+```
+
+## Úkol B.3: Box plot
+
+```{r ukol_b_3}
+# Vytvořte krabicový graf podle kategorií
+
+
+```
+
+## Úkol B.4: Violin plot
+
+```{r ukol_b_4}
+# Vytvořte houslový graf
+
+
+```
+
+## Úkol B.5: Kombinace geomů
+
+```{r ukol_b_5}
+# Kombinujte více geomů v jednom grafu
+
+
+```
+
+---
+
+# 🎨 Cvičení C: Komplexní vizualizace
+
+Vytvoření profesionální vizualizace s použitím všech naučených technik.
+
+## Načtení dat
+
+```{r ukol_c_nacteni}
+# Načtěte data
+
+
+# Příprava dat pro vizualizaci
+
+
+```
+
+## Krok 1: Vizualizace dat
+
+Vytvořte základní vizualizaci dat.
+
+```{r ukol_c_krok1}
+# Základní graf s vhodnými geomy
+
+
+```
+
+## Krok 2: Nastavení mapování
+
+Nastavte estetické mapování pro lepší interpretaci dat.
+
+```{r ukol_c_krok2}
+# Upravte mapování v aes()
+# - barva podle kategorie
+# - velikost podle hodnoty
+# - průhlednost
+
+
+```
+
+## Krok 3: Nastavení vzhledu
+
+Vylepšete vzhled grafu pomocí témat, škál a popisků.
+
+```{r ukol_c_krok3}
+# Použijte theme_*()
+# Upravte popisky pomocí labs()
+# Nastavte škály (scale_*())
+
+
+```
+
+## Finální graf
+
+```{r ukol_c_final}
+# Zkombinujte všechny předchozí kroky do jednoho komplexního grafu
+
+
+```
+
+---
+
+# 📈 Typy grafů v ggplot2
+
+## Spojité proměnné
+
+```r
+# Bodový graf
+ggplot(data, aes(x = var1, y = var2)) +
+  geom_point()
+
+# Čárový graf
+ggplot(data, aes(x = time, y = value)) +
+  geom_line()
+
+# Plošný graf
+ggplot(data, aes(x = time, y = value)) +
+  geom_area()
+
+# Vyhlazená křivka
+ggplot(data, aes(x = var1, y = var2)) +
+  geom_smooth()
+```
+
+## Rozdělení dat
+
+```r
+# Histogram
+ggplot(data, aes(x = variable)) +
+  geom_histogram(bins = 30)
+
+# Hustotní graf
+ggplot(data, aes(x = variable)) +
+  geom_density()
+
+# Krabicový graf
+ggplot(data, aes(x = category, y = value)) +
+  geom_boxplot()
+
+# Houslový graf
+ggplot(data, aes(x = category, y = value)) +
+  geom_violin()
+```
+
+## Kategorické proměnné
+
+```r
+# Sloupcový graf
+ggplot(data, aes(x = category)) +
+  geom_bar()
+
+# Sloupcový graf s hodnotami
+ggplot(data, aes(x = category, y = value)) +
+  geom_col()
+
+# Seskupený sloupcový graf
+ggplot(data, aes(x = category, y = value, fill = group)) +
+  geom_col(position = "dodge")
+```
+
+---
+
+# 🎯 Estetické mapování (aes)
+
+Estetické vlastnosti můžeme mapovat na proměnné:
+
+```r
+ggplot(data, aes(x = var1, 
+                 y = var2,
+                 color = category,    # barva podle kategorie
+                 size = value,        # velikost podle hodnoty
+                 shape = type,        # tvar podle typu
+                 alpha = weight,      # průhlednost podle váhy
+                 linetype = group))   # typ čáry podle skupiny
+```
+
+**Důležité:**
+- Mapování uvnitř `aes()` → proměnná
+- Pevné hodnoty mimo `aes()` → konstanta
+
+```r
+# ✅ Správně - mapování na proměnnou
+geom_point(aes(color = category))
+
+# ✅ Správně - pevná hodnota
+geom_point(color = "blue")
+
+# ❌ Chyba - pevná hodnota v aes()
+geom_point(aes(color = "blue"))
+```
+
+---
+
+# 🎨 Facetování
+
+## facet_wrap()
+
+Pro rozdělení podle jedné proměnné:
+
+```r
+ggplot(data, aes(x = var1, y = var2)) +
+  geom_point() +
+  facet_wrap(~ category, ncol = 2)
+```
+
+## facet_grid()
+
+Pro rozdělení podle dvou proměnných:
+
+```r
+# Řádky ~ Sloupce
+ggplot(data, aes(x = var1, y = var2)) +
+  geom_point() +
+  facet_grid(rows_var ~ cols_var)
+
+# Pouze řádky
+facet_grid(rows_var ~ .)
+
+# Pouze sloupce
+facet_grid(. ~ cols_var)
+```
+
+---
+
+# 🎭 Témata a vzhled
+
+## Vestavěná témata
+
+```r
+theme_gray()      # výchozí
+theme_bw()        # černobílé
+theme_minimal()   # minimalistické
+theme_classic()   # klasické
+theme_light()     # světlé
+theme_dark()      # tmavé
+```
+
+## Vlastní úpravy
+
+```r
+ggplot(data, aes(x = var1, y = var2)) +
+  geom_point() +
+  labs(
+    title = "Hlavní nadpis",
+    subtitle = "Podnadpis",
+    x = "Popis osy X",
+    y = "Popis osy Y",
+    caption = "Zdroj dat"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 12),
+    legend.position = "bottom"
+  )
+```
+
+---
+
+# 🌈 Škály a barvy
+
+## Spojité škály
+
+```r
+# Úprava osy X
+scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, 20))
+
+# Logaritmická škála
+scale_y_log10()
+
+# Barevná škála pro spojité hodnoty
+scale_color_gradient(low = "blue", high = "red")
+scale_color_viridis_c()  # viridis paleta
+```
+
+## Diskrétní škály
+
+```r
+# Manuální barvy
+scale_color_manual(values = c("red", "blue", "green"))
+
+# Vestavěné palety
+scale_color_brewer(palette = "Set1")
+scale_color_viridis_d()  # viridis paleta (diskrétní)
+```
+
+---
+
+# 💡 Důležité poznámky
+
+## Anatomie ggplot grafu
+
+```r
+ggplot(data = <DATA>) +                    # 1. Data
+  <GEOM_FUNCTION>(                         # 2. Geom
+    mapping = aes(<MAPPINGS>),             # 3. Mapování
+    stat = <STAT>,                         # 4. Statistická transformace
+    position = <POSITION>                  # 5. Pozice
+  ) +
+  <COORDINATE_FUNCTION> +                  # 6. Souřadnicový systém
+  <FACET_FUNCTION> +                       # 7. Facety
+  <SCALE_FUNCTION> +                       # 8. Škály
+  <THEME_FUNCTION>                         # 9. Téma
+```
+
+## Časté problémy a řešení
+
+### Problém 1: Překrývající se body
+
+```r
+# ❌ Body se překrývají
+geom_point()
+
+# ✅ Přidání průhlednosti
+geom_point(alpha = 0.5)
+
+# ✅ Použití jitter
+geom_jitter(width = 0.2, height = 0.2)
+```
+
+### Problém 2: Přeplněné popisky
+
+```r
+# ❌ Nečitelné popisky na ose X
+ggplot(data, aes(x = category, y = value)) +
+  geom_col()
+
+# ✅ Otočení popisků
+ggplot(data, aes(x = category, y = value)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# ✅ Nebo otočení souřadnic
+ggplot(data, aes(x = category, y = value)) +
+  geom_col() +
+  coord_flip()
+```
+
+### Problém 3: Automatické bins v histogramu
+
+```r
+# ⚠️ Varování o automatickém počtu binů
+ggplot(data, aes(x = variable)) +
+  geom_histogram()
+
+# ✅ Explicitní nastavení
+ggplot(data, aes(x = variable)) +
+  geom_histogram(bins = 30)
+# nebo
+ggplot(data, aes(x = variable)) +
+  geom_histogram(binwidth = 5)
+```
+
+---
+
+# 📊 Kombinování geomů
+
+Můžete kombinovat více geomů v jednom grafu:
+
+```r
+ggplot(data, aes(x = var1, y = var2)) +
+  geom_point(alpha = 0.5) +              # Body
+  geom_smooth(method = "lm", se = TRUE) + # Trendová čára
+  geom_hline(yintercept = 0, linetype = "dashed") # Horizontální čára
+```
+
+---
+
+# 💾 Ukládání grafů
+
+```r
+# Vytvoření grafu
+p <- ggplot(data, aes(x = var1, y = var2)) +
+  geom_point()
+
+# Uložení
+ggsave("muj_graf.png", plot = p, width = 8, height = 6, dpi = 300)
+
+# Různé formáty
+ggsave("muj_graf.pdf", plot = p)
+ggsave("muj_graf.svg", plot = p)
+```
+
+---
+
+# 🎯 Checklist
+
+- [ ] Rozumím struktuře ggplot grafu (data + geom + aes)?
+- [ ] Vím, kdy použít mapování v aes() a kdy mimo něj?
+- [ ] Dokážu vytvořit různé typy grafů (body, čáry, sloupcové, histogramy)?
+- [ ] Umím použít facetování pro rozdělení dat?
+- [ ] Vím, jak upravit témata a vzhled grafu?
+- [ ] Dokážu pracovat se škálami a barvami?
+- [ ] Umím kombinovat více geomů v jednom grafu?
+
+---
+
+# 🔗 Užitečné odkazy
+
+- [ggplot2 cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/data-visualization.pdf)
+- [R for Data Science - Data visualization](https://r4ds.had.co.nz/data-visualisation.html)
+- [ggplot2 documentation](https://ggplot2.tidyverse.org/)
+- [R Graph Gallery](https://r-graph-gallery.com/)
+- [ggplot2 extensions](https://exts.ggplot2.tidyverse.org/)
+
+---
+
+<div style="text-align: center; margin-top: 50px; padding: 20px; background-color: #f0f0f0; border-radius: 10px;">
+**Vytvorené pre:** MPE_AVED, Týždeň 9, ECON MUNI  
+**Dátum:** `r Sys.Date()`
+</div>

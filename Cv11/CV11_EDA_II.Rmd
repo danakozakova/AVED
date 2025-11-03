@@ -1,0 +1,643 @@
+---
+title: "Cvičení 11: Exploratory Data Analysis II"
+subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
+author: "Vaše meno"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: cosmo
+    highlight: tango
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+# 📚 Úvod
+
+V tomto cvičení pokračujeme v **exploratorní analýze dat (EDA)** s důrazem na:
+
+- **Popisné statistiky** - mean, median, sd, quartiles
+- **Seskupené analýzy** - statistiky podle kategorií
+- **Vytváření souhrnných tabulek** - agregace a sumarizace dat
+- **Pokročilé vizualizace** - kombinace grafů a tabulek
+- **Identifikace vzorů** - hledání zajímavých vztahů v datech
+- **Interpretace výsledků** - praktické závěry z analýz
+
+# 📦 Načítání balíků
+
+```{r packages}
+# Načtěte potřebné balíky
+
+
+```
+
+---
+
+# 🔥 Něco na zahřátí...
+
+Úvodní cvičení pro připomenutí základních technik EDA.
+
+## Načtení dat
+
+```{r zahnuti_data}
+# Načtěte data pro zahřívací cvičení
+
+
+# Prozkoumejte strukturu dat
+
+
+```
+
+## Varianta I
+
+**Zadání:** Proveďte základní exploraci dat pomocí vizualizace.
+
+```{r zahnuti_varianta_1}
+# Vytvořte základní grafy
+# - Histogram pro spojité proměnné
+# - Sloupcový graf pro kategorické proměnné
+# - Scatter plot pro vztahy
+
+
+```
+
+## Varianta II
+
+**Zadání:** Proveďte exploraci pomocí popisných statistik.
+
+```{r zahnuti_varianta_2}
+# Vypočítejte popisné statistiky
+# - summary()
+# - mean(), median(), sd()
+# - quantile()
+# - Seskupené statistiky pomocí group_by() + summarise()
+
+
+```
+
+---
+
+# 📊 Úkol A: Komplexní popisná analýza
+
+Systematická analýza datasetu s kombinací grafů a tabulek.
+
+## Načtení dat
+
+```{r ukol_a_data}
+# Načtěte data pro úkol A
+
+
+# Základní přehled
+
+
+```
+
+## Krok 1: Univariátní analýza
+
+**Zadání:** Analyzujte každou proměnnou samostatně.
+
+```{r ukol_a_krok1}
+# Pro každou proměnnou:
+# 1. Popisné statistiky
+# 2. Vhodná vizualizace (histogram/barplot)
+# 3. Kontrola outliers
+# 4. Počet chybějících hodnot
+
+
+```
+
+**Otázky:**
+- Která proměnná má nejvíce outliers?
+- Jsou data normálně rozdělená?
+- Existují významné chybějící hodnoty?
+
+## Krok 2: Bivariátní analýza
+
+**Zadání:** Analyzujte vztahy mezi páry proměnných.
+
+```{r ukol_a_krok2}
+# Vytvořte:
+# 1. Scatter ploty pro spojité proměnné
+# 2. Box ploty pro spojité vs. kategorické
+# 3. Korelační matici
+
+
+```
+
+**Interpretace:**
+- Které proměnné jsou nejvíce korelovány?
+- Existují nelineární vztahy?
+
+## Krok 3: Souhrnná tabulka
+
+**Zadání:** Vytvořte přehlednou souhrnnou tabulku s klíčovými statistikami.
+
+```{r ukol_a_krok3}
+# Vytvořte tabulku obsahující:
+# - N (počet pozorování)
+# - Mean
+# - Median
+# - SD
+# - Min, Max
+# - Quartiles
+
+
+```
+
+---
+
+# 🔍 Úkol B: Porovnání skupin
+
+Analýza rozdílů mezi skupinami pomocí grafů a statistik.
+
+## Načtení dat
+
+```{r ukol_b_data}
+# Načtěte data s kategoriální proměnnou
+
+
+# Prozkoumejte kategorie
+
+
+```
+
+## Pomocí obrázku
+
+**Zadání:** Porovnejte skupiny vizuálně.
+
+```{r ukol_b_obrazek}
+# Vytvořte grafy pro porovnání skupin:
+# - Box ploty podle skupin
+# - Violin ploty
+# - Density ploty s překrytím
+# - Facetované histogramy
+
+
+```
+
+**Otázky:**
+- Která skupina má nejvyšší průměrnou hodnotu?
+- Jsou rozdíly mezi skupinami vizuálně patrné?
+- Existují outliers v některých skupinách?
+
+## Pomocí popisných statistik
+
+**Zadání:** Vypočítejte statistiky pro každou skupinu.
+
+```{r ukol_b_statistiky}
+# Seskupené statistiky pomocí group_by()
+# - Počet pozorování v každé skupině
+# - Průměr
+# - Medián
+# - Směrodatná odchylka
+# - Min, Max
+
+
+```
+
+**Interpretace:**
+- Jsou rozdíly mezi skupinami statisticky významné?
+- Která skupina má největší variabilitu?
+
+---
+
+# 📈 Úkol C: Tvorba reportovacích tabulek
+
+Vytváření profesionálních tabulek pro prezentaci výsledků.
+
+## Načtení dat
+
+```{r ukol_c_data}
+# Načtěte data pro tvorbu tabulek
+
+
+```
+
+## Krok 1: Základní agregační tabulka
+
+**Zadání:** Vytvořte tabulku s agregovanými statistikami podle kategorií.
+
+```{r ukol_c_krok1}
+# Použijte dplyr pro agregaci
+# group_by() + summarise()
+
+
+```
+
+## Krok 2: Formátovaná tabulka
+
+**Zadání:** Vylepšete tabulku pomocí kable nebo gt balíku.
+
+```{r ukol_c_krok2}
+# Použijte kableExtra nebo gt pro formátování
+# - Zarovnání sloupců
+# - Zaokrouhlení čísel
+# - Přidání záhlaví
+# - Styling
+
+
+```
+
+## Krok 3 (s hvězdičkou) ⭐
+
+**Zadání:** Vytvořte komplexní pivot tabulku s více dimenzemi.
+
+```{r ukol_c_krok3}
+# Vytvořte pivot tabulku
+# - Řádky: jedna kategorie
+# - Sloupce: druhá kategorie
+# - Hodnoty: agregovaná statistika
+
+
+```
+
+## Krok 4: Export tabulky
+
+**Zadání:** Uložte tabulku do souboru.
+
+```{r ukol_c_krok4}
+# Export do CSV, Excel nebo jako obrázek
+
+
+```
+
+---
+
+# 🗳️ Úkol D: Free and fair
+
+Analýza dat s reálným ekonomickým nebo politickým kontextem.
+
+## Načtení dat
+
+```{r ukol_d_data}
+# Načtěte data
+
+
+# Kontext dat
+
+
+```
+
+## Krok 1: Explorativní přehled
+
+**Zadání:** Proveďte kompletní explorativní přehled datasetu.
+
+```{r ukol_d_krok1}
+# 1. Dimenze dat
+# 2. Typy proměnných
+# 3. Chybějící hodnoty
+# 4. Základní statistiky
+# 5. Rozložení klíčových proměnných
+
+
+```
+
+## Krok 2, varianta I: Vizuální analýza
+
+**Zadání:** Vytvořte sérii grafů odhalujících hlavní vzory v datech.
+
+```{r ukol_d_krok2_var1}
+# Vytvořte:
+# 1. Graf časového vývoje (pokud relevantní)
+# 2. Porovnání mezi skupinami
+# 3. Scatter plot s trendovou čárou
+# 4. Facetované grafy podle kategorií
+
+
+```
+
+**Interpretace:**
+- Jaké jsou hlavní poznatky z grafů?
+- Existují překvapivé vzory?
+
+## Krok 2, varianta II: Statistická analýza
+
+**Zadání:** Proveďte detailní statistickou analýzu.
+
+```{r ukol_d_krok2_var2}
+# Vypočítejte:
+# 1. Korelační matici
+# 2. Seskupené statistiky podle klíčových kategorií
+# 3. Percentily a kvantily
+# 4. Identifikace outliers
+
+
+```
+
+**Závěry:**
+- Které proměnné jsou nejdůležitější?
+- Jaké vztahy existují mezi proměnnými?
+
+---
+
+# 📊 Pokročilé techniky
+
+## Tvorba kompozitních indexů
+
+```{r pokrocile_1}
+# Vytvoření skóre z více proměnných
+# - Normalizace proměnných
+# - Váhovaný průměr
+# - Z-skóre
+
+
+```
+
+## Clustering a segmentace
+
+```{r pokrocile_2}
+# Jednoduché seskupování dat
+# - K-means
+# - Hierarchické shlukování
+
+
+```
+
+## Detekce anomálií
+
+```{r pokrocile_3}
+# Identifikace neobvyklých pozorování
+# - IQR metoda
+# - Z-skóre
+# - Isolation forest
+
+
+```
+
+---
+
+# 💡 Důležité poznámky
+
+## Popisné statistiky - přehled
+
+| Statistika | Funkce | Popis |
+|------------|--------|-------|
+| Střední hodnota | `mean(x)` | Průměr hodnot |
+| Medián | `median(x)` | Prostřední hodnota |
+| Modus | - | Nejčastější hodnota |
+| Směrodatná odchylka | `sd(x)` | Míra rozptylu |
+| Rozptyl | `var(x)` | Čtverec směrodatné odchylky |
+| IQR | `IQR(x)` | Mezikvartilové rozpětí |
+| Minimum | `min(x)` | Nejmenší hodnota |
+| Maximum | `max(x)` | Největší hodnota |
+| Kvantily | `quantile(x)` | Percentily |
+| Počet | `n()` | Velikost vzorku |
+
+## Seskupená analýza
+
+```r
+# Základní pattern
+data %>%
+  group_by(kategorie) %>%
+  summarise(
+    n = n(),
+    mean = mean(hodnota, na.rm = TRUE),
+    median = median(hodnota, na.rm = TRUE),
+    sd = sd(hodnota, na.rm = TRUE)
+  )
+```
+
+## Chybějící hodnoty
+
+```r
+# Kontrola NA
+sum(is.na(data))
+colSums(is.na(data))
+
+# Procento chybějících
+mean(is.na(data$variable)) * 100
+
+# Odstranění NA
+na.omit(data)
+drop_na(data)
+
+# Imputace
+data %>%
+  mutate(var = replace_na(var, mean(var, na.rm = TRUE)))
+```
+
+## Outliers
+
+```r
+# IQR metoda
+Q1 <- quantile(x, 0.25)
+Q3 <- quantile(x, 0.75)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5 * IQR
+upper_bound <- Q3 + 1.5 * IQR
+
+outliers <- x < lower_bound | x > upper_bound
+```
+
+---
+
+# 📋 Užitečné funkce pro EDA
+
+## Base R funkce
+
+```r
+# Přehled
+str(data)           # Struktura
+summary(data)       # Základní statistiky
+head(data, n = 6)   # Prvních n řádků
+tail(data, n = 6)   # Posledních n řádků
+dim(data)           # Dimenze
+names(data)         # Názvy sloupců
+
+# Statistiky
+mean(x, na.rm = TRUE)
+median(x, na.rm = TRUE)
+sd(x, na.rm = TRUE)
+var(x, na.rm = TRUE)
+range(x, na.rm = TRUE)
+```
+
+## dplyr funkce
+
+```r
+# Přehled
+glimpse(data)       # Kompaktní přehled
+
+# Agregace
+group_by(data, kategorie)
+summarise(data, stat = mean(hodnota))
+count(data, kategorie)
+
+# Transformace
+mutate(data, nova = stara * 2)
+filter(data, podminka)
+select(data, sloupce)
+arrange(data, sloupec)
+```
+
+## Vizualizační funkce
+
+```r
+# Base R
+hist(x)
+plot(x, y)
+boxplot(y ~ x)
+pairs(data)
+
+# ggplot2
+ggplot(data, aes(x, y)) +
+  geom_point()
+  
+ggplot(data, aes(x)) +
+  geom_histogram()
+  
+ggplot(data, aes(x, y)) +
+  geom_boxplot()
+```
+
+---
+
+# 🎯 Checklist pro EDA
+
+- [ ] Načetl jsem data a zkontroloval jejich strukturu?
+- [ ] Identifikoval jsem typy proměnných (spojité/kategorické)?
+- [ ] Zkontroloval jsem chybějící hodnoty?
+- [ ] Vypočítal jsem popisné statistiky pro všechny proměnné?
+- [ ] Vytvořil jsem vhodné vizualizace pro každou proměnnou?
+- [ ] Identifikoval jsem outliers?
+- [ ] Analyzoval jsem vztahy mezi proměnnými?
+- [ ] Provedl jsem seskupenou analýzu podle kategorií?
+- [ ] Dokumentoval jsem své poznatky?
+- [ ] Formuloval jsem hypotézy pro další analýzu?
+
+---
+
+# 📊 EDA report template
+
+```r
+## 1. Úvod
+# - Popis dat
+# - Výzkumné otázky
+# - Cíle analýzy
+
+## 2. Popis dat
+# - Zdroj dat
+# - Dimenze (n řádků, m sloupců)
+# - Typy proměnných
+# - Časové období
+
+## 3. Čištění dat
+# - Chybějící hodnoty
+# - Outliers
+# - Transformace proměnných
+
+## 4. Univariátní analýza
+# Pro každou proměnnou:
+# - Popisné statistiky
+# - Vizualizace
+# - Interpretace
+
+## 5. Bivariátní analýza
+# - Scatter ploty
+# - Box ploty
+# - Korelace
+# - Vztahy mezi proměnnými
+
+## 6. Multivariátní analýza
+# - Seskupené analýzy
+# - Facetované grafy
+# - Interakce mezi proměnnými
+
+## 7. Závěry
+# - Hlavní poznatky
+# - Překvapivé nálezy
+# - Doporučení pro další analýzu
+```
+
+---
+
+# 🔗 Užitečné odkazy
+
+- [R for Data Science - EDA](https://r4ds.had.co.nz/exploratory-data-analysis.html)
+- [DataCamp - EDA in R](https://www.datacamp.com/tutorial/exploratory-data-analysis-in-r)
+- [Quick-R: Descriptive Statistics](https://www.statmethods.net/stats/descriptives.html)
+- [dplyr cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/data-transformation.pdf)
+- [ggplot2 cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/data-visualization.pdf)
+
+---
+
+# 📚 Doporučená literatura
+
+- **Tukey, J. W.** (1977). *Exploratory Data Analysis*. Addison-Wesley.
+- **Wickham, H. & Grolemund, G.** (2017). *R for Data Science*. O'Reilly.
+- **Peng, R. D.** (2016). *Exploratory Data Analysis with R*. Leanpub.
+- **Unwin, A.** (2015). *Graphical Data Analysis with R*. CRC Press.
+
+---
+
+# 💻 Užitečné balíky pro EDA
+
+```r
+# Základní EDA
+library(tidyverse)    # dplyr, ggplot2, tidyr
+library(skimr)        # skim() - rychlý přehled dat
+library(DataExplorer) # Automatické EDA reporty
+
+# Popisné statistiky
+library(psych)        # describe(), describeBy()
+library(summarytools) # dfSummary()
+
+# Vizualizace
+library(GGally)       # ggpairs() - matice grafů
+library(corrplot)     # Korelační grafy
+library(ggridges)     # Ridge plots
+
+# Tabulky
+library(kableExtra)   # Formátování tabulek
+library(gt)           # Grammar of tables
+library(DT)           # Interaktivní tabulky
+```
+
+---
+
+# 🎓 Tipy pro efektivní EDA
+
+## 1. Začněte jednoduše
+- Nejprve základní přehled (`str()`, `summary()`)
+- Pak jednotlivé proměnné
+- Až nakonec komplexní vztahy
+
+## 2. Používejte vizualizace
+- Jeden obrázek = tisíc čísel
+- Grafy odhalí vzory, které statistiky nevidí
+- Kombinujte různé typy grafů
+
+## 3. Dokumentujte proces
+- Zapisujte si poznatky
+- Komentujte neobvyklé nálezy
+- Formulujte hypotézy
+
+## 4. Buďte skeptičtí
+- Ověřujte překvapivé výsledky
+- Hledejte alternativní vysvětlení
+- Kontrolujte kvalitu dat
+
+## 5. Iterujte
+- EDA je iterativní proces
+- Nové poznatky vedou k novým otázkám
+- Vraťte se a prozkoumejte hlouběji
+
+---
+
+<div style="text-align: center; margin-top: 50px; padding: 20px; background-color: #f0f0f0; border-radius: 10px;">
+**Vytvorené pre:** MPE_AVED, Týždeň 11, ECON MUNI  
+**Dátum:** `r Sys.Date()`
+</div>
