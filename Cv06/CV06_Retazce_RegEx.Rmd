@@ -1,8 +1,8 @@
 ---
 title: "Cvičení 6: Řetězce a regulární výrazy"
 subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
-author: "Vaše meno"
-date: "`r Sys.Date()`"
+author: "Dana Kozáková"
+date: '`r Sys.Date()`'
 output:
   html_document:
     toc: true
@@ -24,486 +24,7 @@ knitr::opts_chunk$set(
 # rm(list = ls())
 ```
 
-# 📚 Úvod
-
-V tomto cvičení sa naučíme pracovať s:
-
-- **Reťazcami** (strings) v R
-- **Regulárnymi výrazmi** (regex)
-- **Balíkom `stringr`** pre manipuláciu s textom
-
-# 📦 Načítanie balíkov
-
-```{r packages}
-# Načítajte potrebné balíky: tibble, readr, stringr
-library(tibble)
-library(readr)
-library(stringr)
-
-```
-
----
-
-# 🔥 Na zahřátí
-
-## Úkol 1: Generovanie názvov súborov
-
-**Zadanie:** Chcete sestavit jména souborů, do kterých budete ukládat data. Soubory se mají jmenovat "data001.csv", "data002.csv" atd. Sestavte vektor `jmena` třiceti takových jmen.
-
-**Funkcie:** `str_c()`, `str_pad()`
-
-```{r ukol1_jmena}
-# Vytvorte vektor 'jmena' s 30 názvami súborov formátu "data001.csv"
-str_pad(1:30, width = 3, side = "left", pad = "0")
-jmena <- str_c("data", str_pad(1:30, width = 3, side = "left", pad = "0"), ".csv")
-
-# Prvých 10 názvov
-jmena |> head(10)
-
-```
-**Poznámky:**
-
-- `str_pad()` - doplní čísla nulami na požadovanú šírku, vo vzore je parameter pad = 0 (bez uvodzoviek), lebo 0 automaticky konvertuje. ved aj cisla z vektora 1:30 automaticky konvertuje 
-- `str_c()` - spojí reťazce dohromady
-
----
-
-## Úkol 2: Dĺžka reťazcov
-
-**Zadanie:** Zjistěte
-
-- kolik má vektor `jmena` prvků
-- kolik znaků mají jednotlivé prvky vektoru `jmena`
-
-**Funkcie:** `length()`, `str_length()`
-
-```{r ukol2_delka}
-# Počet prvkov vektora 'jmena'
-jmena |> length()
-
-# Počet znakov v každom prvku vektora 'jmena'
-jmena |> str_length()
-
-```
-
----
-
-## Úkol 3: Práca s dátumami v reťazcoch
-
-**Zadanie:** Načtěte datový soubor `exdata06.RData`. Prohlédněte si tabulku `measurement`.
-
-Upravte tabulku:
-
-1. Pridajte sloupce `year`, `month` a `day` - data extrahujte ze sloupce `time` (formát: `yyyymmdd`)
-2. Zrušte sloupec `time`
-3. Zajistěte pořadí sloupců: `year`, `month`, `day`, `class`, `measurement`
-4. Ze sloupce `class` odstraňte přebytečné mezery
-
-**Funkcie:** `str_sub()`, `str_trim()`, `as.integer()`
-
-```{r ukol3_measurement}
-# Načítajte dáta
-load("exdata06.RData")
-
-# Pozrite si štruktúru tabulky 'measurement'
-
-# 1. Extrahujte rok (prvé 4 znaky)
-
-measurement$year <- str_sub(measurement$time, 1, 4)|> as.integer()
-
-# 2. Extrahujte mesiac (znaky 5-6)
-measurement$month <- str_sub(measurement$time,5, 6)|> as.integer()
-
-# 3. Extrahujte deň (znaky 7-8)
-measurement$day <- str_sub(measurement$time,7, 8)|> as.integer()
-
-# Ina moznost extrahovania datumu
-library(lubridate, quietly = TRUE)
-measurement$time |> ymd() |> year() |> head(10)
-measurement$time |> ymd() |> month() |> head(10)
-measurement$time |> ymd() |> day() |> head(10)
-
-# 4. Odstráňte medzery zo stĺpca 'class'
-measurement$class <- str_trim(measurement$class)
-
-# 5. Preusporiadajte stĺpce
-measurement <- measurement[, c("year", "month", "day", "class", "measurement")]
-
-# Vypíšte výsledok
-measurement
-
-```
-
-**Poznámky:**
-
-- `str_sub(text, start, end)` - vyextrahuje podreťazec
-- `str_trim(text)` - odstráni medzery na začiatku a konci
-- Alternatívne: použite funkcie z balíka `lubridate` (`ymd()`, `year()`, `month()`, `day()`)
-
----
-
-# 📜 Hrátky s Deklarací nezávislosti
-
-Text Deklarace nezávislosti obsahuje chyby - miestami je viac medzier, než by malo byť.
-
-## Úkol 1: Detekcia a oprava medzier
-Vektor řetězců 'deklarace' obsahuje text Deklarace nezávislosti, jak jej přepsal nešikovný písař, který místy napsal víc mezer, než se patří.
-
-**Zadanie:**
-
-1. Vytvorte logický vektor, který bude mít TRUE u těch prvků vektoru `deklarace`, které obsahují několik mezer za sebou
-2. Spočítejte počet takových chyb v každém řetězci
-3. Opravte text tak, aby byla všude vždy právě jedna mezera
-
-**Funkcie:** `str_detect()`, `str_count()`, `str_replace_all()`, `str_squish()`
-
-**Regex:** `\\s{2,}` - dva alebo viac whitespace znakov za sebou
-
-```{r ukol1_deklarace}
-# 1. Logický vektor: kde sú duplicitné medzery?
-# Použite regex \\s{2,}
-str_detect(deklarace, "\\s{2,}") # parametre: string, pattern
-
-# 2. Počet duplicitných medzier v každom prvku
-str_count(deklarace, "\\s{2,}")
-
-# 3. Odstránenie duplicitných medzier
-# Spôsob 1: str_replace_all()
-str_replace_all(deklarace, "\\s+", " ") # parametre: text, co nahradit, cim nahradit
-
-# Spôsob 2: str_squish() (jednoduchšie)
-str_squish(deklarace)
-
-deklarace <- str_replace_all(deklarace, "\\s+", " ") # parametre: text, co nahradit, cim nahradit
-
-```
-
-**Poznámky:**
-
-- `\\s` - whitespace (medzera, tab, nový riadok)
-- `{2,}` - 2 alebo viac opakovaní
-- `str_squish()` - odstráni duplicitné medzery a trim
-
----
-
-## Úkol 2: Formátovanie textu
-
-**Zadanie:** Vypište druhý odstavec opravené `Deklarace` tak, aby se text pěkně zalomil do odstavce o šířce 60 znaků.
-
-**Funkcie:** `str_wrap()`, `cat()`
-
-```{r ukol2_wrap}
-# Vyformátujte druhý odstavec na šírku 60 znakov
-deklarace[2] |> str_wrap(width = 60) |> cat()
-
-```
-
-**Poznámky:**
-
-- `str_wrap()` - zalomí text na danú šírku
-- `cat()` - vypíše text s interpretáciou špeciálnych znakov (`\n`)
-
----
-
-## Úkol 3: Pokazenie textu (dobrovoľný, ťažký)
-
-**Zadanie:** Rozmyslete si, jak je možné pokazit text deklarace tak, že místo jedné mezery je v textu někdy větší množství mezer.
-
-```{r ukol3_pokazeni, eval=FALSE}
-# Tento úkol je na doma - skúste vymyslieť spôsob, ako pokaziť text
-# Nápoveda:
-# 1. Spojte odstavce do jedného reťazca (oddelené špeciálnym znakom)
-# 2. Rozdeľte text na časti v miestach, kde sú medzery
-# 3. Zlepte časti späť s náhodným počtom medzier
-# 4. Rozdeľte späť na odstavce
-
-dekl_col <- str_c(deklarace, collapse = "|")
-
-
-```
-
----
-
-# 🔧 Oprava načtených dat
-
-## Úkol 1: Načítanie tabuľky
-
-**Zadanie:** Načtěte tabulku ze souboru "tec00001.tsv.gz" a vypište její hlavičku.
-
-**Poznámky:** Jedná se o data z Eurostatu o HDP na obyvateľa.
-
-```{r ukol1_tec}
-# Načítajte TSV súbor (tab-separated values)
-# col_types = "cnnnnnnnnnnnn" (1 character + 12 numeric stĺpcov)
-tec00001tsv <- read_tsv("tec00001.tsv.gz",
-                        col_types = "cnnnnnnnnnnnn")
-
-# Vypíšte hlavičku
-head(tec00001tsv)
-
-```
-
----
-
-## Úkol 2: Rozdelenie prvého stĺpca
-
-**Zadanie:** Upravte tabulku `tec00001tsv` tak, že první sloupec nahradíte sloupci `item`, `unit` a `geo`, které získáte rozdělením původního prvního sloupce v místech, kde je čárka (`,`).
-
-**Funkcie:** `str_split()`, `str_split_fixed()`, alebo `tidyr::separate_wider_delim()`
-
-```{r ukol2_split}
-# Spôsob 1: str_split() a manuálne priradenie
-mat <- str_split(tec00001tsv$`na_item,unit,geo\\time`, ",", simplify = TRUE)
-  # vezme stlpec, zoberie riadky a rozdeli ho podla ciarky
-
-tec00001tsv_copy <- tec00001tsv
-tec00001tsv_copy$item <- mat[,1]
-tec00001tsv_copy$unit <- mat[,2]
-tec00001tsv_copy$geo <- mat[,3]
-
-col_no <- tec00001tsv_copy |> colnames() |> length()
-# tec00001tsv_copy <- tec00001tsv_copy[, c(col_no-2 : col_no, 2 : col_no - 3)] # tu ma byt c(14:16, 2:13)!!!
-
-tec00001tsv_copy |> head()
-
-# TOTO bude pridane do rieseni.. vezmi nazov, oddelovac je ,
-# DOKONC tec00001tsv$item <- str_split(tec00001tsv$item, )
-
-# Spôsob 2: str_split_fixed() a cbind()
-mat <- str_split_fixed(tec00001tsv[[1]], ",", 3) # rozdeli na 3 stlpce
-# DOKONC..
-
-# Spôsob 3: tidyr::separate_wider_delim() (najjednoduchší)
-# DOKONC...
-
-# Vypíšte výsledok
-
-
-```
-
-**Poznámky:**
-
-- Prvý stĺpec má názov `na_item,unit,geo\\time`
-- Musí sa použiť spätné apostrofy: `` `názov` ``
-- Alebo použite `[[1]]` pre prístup podľa pozície
-
----
-
-# ⛏️ Dolování dat z řetězců
-
-Súbor "shops.txt" obsahuje data o cenách a nákladoch na dopravu Úžasných udělátek™ v rôznych obchodoch. Dáta bohužiaľ nie sú v žiadnom štandardnom formáte.
-
-## Úkol 1: Načítanie dát
-
-**Zadanie:** Načtěte data (po řádcích) a výsledok uložte do vektora `shopping`.
-
-**Funkcie:** `read_lines()` - lebo je to txt
-
-```{r ukol1_shops}
-# Načítajte súbor po riadkoch
-shopping <- read_lines('shops.txt')
-
-# Vypíšte prvých 6 riadkov pomocou cat()
-shopping |> head(6) |> cat(sep = "\n")
-
-```
-
----
-
-## Úkol 2: Vytvorenie tabuľky
-
-**Zadanie:** Vytvorte z dat tabulku `shops`, která bude mít sloupce:
-
-1. `shop` - kódové jméno obchodu
-2. `price` - cena produktu (číslo)
-3. `shipping` - náklady na dopravu (číslo)
-4. `total_price` - celkové náklady
-
-**Funkcie:** `str_extract()`, `str_match()`, `str_remove()`, `str_replace()`, `as.numeric()`
-
-**Regex vzory:**
-
-- Názov obchodu: `^[-\\w]+`
-- Cena: `cena:\\s*\\d+\\s*\\.?\\s*\\d*\\s*Kč`
-- Doprava: `doprava:\\s*\\d+\\s*Kč`
-
-```{r ukol2_shops_tabulka}
-# Najprv nahraďte "zdarma" za "0 Kč"
-shopping <- shopping |> str_replace("zdarma", "0 Kč")
-shopping |> head()
-
-# Vytvorte tabulku s 4 stĺpcami
-
-# 1. Extrahujte názov obchodu (od začiatku po prvú medzeru)
-str_extract(shopping, "^[-\\w]+") |> head()
-
-# 2. Extrahujte cenu (číslo z "cena: ... Kč")
-str_extract(shopping, "[-+]?[.]*")
-
-# Vysvetlenie vyrazu vo vzore:
-# cena:\\s*(\\d+\\s*\\.?\\s*\\d*)\\s*Kč"
-# 1. cena: - doslovný text "cena:"
-# 2. \\s* - nula nebo více bílých znaků (mezery, tabulátory)
-# 
-# \\s = bílý znak (whitespace)
-# * = nula nebo více opakování
-# 
-# 3. (\\d+\\s*\\.?\\s*\\d*) - zachytávající skupina pro samotnou číselnou hodnotu:
-# 
-# \\d+ = jedna nebo více číslic (povinné)
-# \\s* = nepovinné mezery
-# \\.? = nepovinná tečka (desetinný oddělovač) - ? znamená 0 nebo 1×
-# \\s* = nepovinné mezery
-# \\d* = nula nebo více číslic (desetinná část - nepovinná)
-# 
-# 4. \\s* - nepovinné mezery před měnou
-# 5. Kč - doslovný text "Kč"
-
-# 3. Extrahujte dopravu (číslo z "doprava: ... Kč")
-
-
-# 4. Vypočítajte celkovú cenu
-
-
-# Vypíšte výsledok
-
-### !!! pozri riesenie 4, vysvetlovanie od riesenia od 4 po 1, riesenie 1 je pre zaciatocnikov
-### shipping = str_extract(shopping, "doprava:.*?Kč") |>  # ten ? sposobi, ze to bude "LAZY" nie hladne.. to riesenie nie je uplne bezpecne, ale pre tento pripad to funguje
-#### aj pri cene je LAZY price = str_extract(shopping, "cena:.*?Kč") |> 
-# to riesenie 3 je paranoidnejsie riesenie, tie vyrazy zozeru len to, co potrebujem a nic viac
-
-# price = str_extract(shopping, "cena:\\s*\\d+\\s*\\.?\\s*\\d*\\s*Kč") |> 
-#         str_remove_all("[\\s,\\.]") |> 
-#         str_extract("\\d+") |>  # 
-#         as.numeric(),
-
-
-# shops <- tibble(
-#    shop = str_extract(shopping, "^[-\\w]+"),
-    #price = str_match(shopping, "cena:\\s*(\\d+\\s*\\.?\\s*\\d*)\\s*Kč")[, 2], # ta 2 je referencia ako "pamat" pre regularny vyraz. Je to odkaz na tu zatvorku v regularnom vyraze, lebo je vlastne druha v poradi
-#    shipping = str_match(shopping, "doprava:\\s*(\\d+)\\s*Kč")[, 2]
-
-```
-
-**Nápoveda:**
-
-- Postupnosť: extrahujte text → odstráňte nežiaduce časti → konvertujte na číslo
-- Použite pipe operátor `|>` pre postupné operácie
-- `str_match()[, 2]` vráti prvú zachytenú skupinu z regex
-
----
-
-## Úkol 3: Najlacnejší obchod
-
-**Zadanie:** Ktorý obchod je najlacnejší (najnižšia celková cena)?
-
-```{r ukol3_najlacnejsi}
-# Nájdite obchod s minimálnou celkovou cenou
-
-
-```
-
----
-
-# 🎃 Trick or Treat, Trump or Tramp
-
-V tejto sekcii budeme pracovať s textom a vyhľadávať vzory.
-
-## Úkol 1: Detekcia vzoru
-
-**Zadanie:** Napíšte regex na detekciu slov obsahujúcich "trump" alebo "tramp".
-
-```{r trump1}
-text <- c("Trump", "tramp", "trumpet", "Donald Trump", "trampoline", "stumped")
-
-# Detekujte slová obsahujúce "trump" alebo "tramp" (case-insensitive)
-
-
-```
-
----
-
-## Úkol 2: Extrakcia
-
-**Zadanie:** Extrahujte všetky výskyty slov začínajúcich na "tru" alebo "tra".
-
-```{r trump2}
-# Extrahujte slová začínajúce na "tru" alebo "tra"
-
-
-```
-
----
-
-## Úkol 3: Náhrada
-
-**Zadanie:** Nahraďte všetky výskyty "trump" za "TRUMP" (case-insensitive).
-
-```{r trump3}
-# Nahraďte "trump" za "TRUMP" (ignorujte veľkosť písmen)
-
-
-```
-
----
-
-## Úkol 4: Počítanie
-
-**Zadanie:** Spočítajte počet výskytov slov obsahujúcich "tr".
-
-```{r trump4}
-# Spočítajte slová obsahujúce "tr"
-
-
-```
-
----
-
-## Úkol 5: Rozdelenie
-
-**Zadanie:** Rozdeľte text na slová.
-
-```{r trump5}
-sentence <- "The quick brown fox jumps over the lazy dog"
-
-# Rozdeľte vetu na slová
-
-
-```
-
----
-
-## Úkol 6: Validácia emailu
-
-**Zadanie:** Vytvorte regex na kontrolu, či je reťazec validná e-mailová adresa.
-
-```{r trump6}
-emails <- c("user@example.com", "invalid-email", "test@test.co.uk", "@wrong.com")
-
-# Validujte e-mailové adresy
-# Jednoduchý regex: \\w+@\\w+\\.\\w+
-
-
-```
-
----
-
-## Úkol 7: Extrakcia dátumu
-
-**Zadanie:** Extrahujte dátum vo formáte DD/MM/YYYY z textu.
-
-```{r trump7}
-text <- "Narodil som sa 15/03/1990 a dnes je 28/10/2025."
-
-# Extrahujte dátumy vo formáte DD/MM/YYYY
-# Regex: \\d{2}/\\d{2}/\\d{4}
-
-
-```
-
----
-
-# 📝 Užitočné regex vzory
+# Užitočné regex vzory
 
 Poznámky pre prácu s regulárnymi výrazmi:
 
@@ -539,9 +60,8 @@ Poznámky pre prácu s regulárnymi výrazmi:
 | `[abc]` | Jeden znak z množiny |
 | `[^abc]` | Jeden znak MIMO množiny |
 
----
 
-# 🎯 Zhrnutie funkcií stringr
+# Užitočné funkcie stringr
 
 ## Detekcia a vyhľadávanie
 
@@ -594,11 +114,564 @@ str_trunc(string, width)       # Skrátenie
 str_wrap(string, width)        # Zalomenie textu
 ```
 
+# Úvod
+
+V tomto cvičení sa naučíme pracovať s:
+
+- **Reťazcami** (strings) v R
+- **Regulárnymi výrazmi** (regex)
+- **Balíkom `stringr`** pre manipuláciu s textom
+
+# Načítanie balíkov
+
+```{r packages}
+# Načítajte potrebné balíky: tibble, readr, stringr
+library(tibble)
+library(readr)
+library(stringr)
+
+```
+
+# Na zahriatie
+
+## Úkol 1: Generovanie názvov súborov
+
+**Zadanie:** Chcete sestavit jména souborů, do kterých budete ukládat data. Soubory se mají jmenovat "data001.csv", "data002.csv" atd. Sestavte vektor `jmena` třiceti takových jmen.
+
+**Funkcie:** `str_c()`, `str_pad()`
+- `str_pad()` - doplní čísla nulami na požadovanú šírku, vo vzore je parameter pad = 0 (bez uvodzoviek), lebo 0 automaticky konvertuje. ved aj cisla z vektora 1:30 automaticky konvertuje 
+- `str_c()` - spojí reťazce dohromady
+
+```{r ukol1_jmena}
+# Vytvorte vektor 'jmena' s 30 názvami súborov formátu "data001.csv"
+str_pad(string = 1:30, width = 3, side = "left", pad = "0") |> # vytvorenie 001 az 030
+  head(10)
+
+jmena <- str_c("data", 
+               str_pad(1:30, width = 3, side = "left", pad = "0"), ".csv")
+# zobraz prvých 10 názvov
+jmena |> head(10)
+
+```
+
+## Úkol 2: Dĺžka reťazcov
+
+**Zadanie:** Zjistěte
+
+- kolik má vektor `jmena` prvků
+- kolik znaků mají jednotlivé prvky vektoru `jmena`
+
+**Funkcie:** `length()`, `str_length()`
+
+- `length()` - dĺžka vektora
+- `str_length()` - dĺžka reťazca
+
+```{r ukol2_delka}
+
+jmena |> length()
+
+jmena |> str_length()
+
+```
+## Úkol 3: Práca s dátumami v reťazcoch
+
+**Zadanie:** Načtěte datový soubor `exdata06.RData`. Prohlédněte si tabulku `measurement`.
+
+Upravte tabulku:
+
+1. Pridajte sloupce `year`, `month` a `day` - data extrahujte ze sloupce `time` (formát: `yyyymmdd`)
+2. Zrušte sloupec `time`
+3. Zajistěte pořadí sloupců: `year`, `month`, `day`, `class`, `measurement`
+4. Ze sloupce `class` odstraňte přebytečné mezery
+
+**Funkcie:** `str_sub()`, `str_trim()`, `as.integer()`
+
+- `str_sub(text, start, end)` - vyextrahuje podreťazec
+- `str_trim(text)` - odstráni medzery na začiatku a konci
+- Alternatívne: použite funkcie z balíka `lubridate` (`ymd()`, `year()`, `month()`, `day()`)
+
+```{r ukol3_measurement}
+# Načítajte dáta
+load("exdata06.RData")
+
+# Pozrite si štruktúru tabulky 'measurement'
+# 1. Extrahujte rok (prvé 4 znaky)
+measurement$year <- str_sub(measurement$time, 1, 4)|> as.integer()
+measurement$year |> head(10)
+
+# 2. Extrahujte mesiac (znaky 5-6)
+measurement$month <- str_sub(measurement$time,5, 6)|> as.integer()
+measurement$month |> head(10)
+
+# 3. Extrahujte deň (znaky 7-8)
+measurement$day <- str_sub(measurement$time,7, 8)|> as.integer()
+measurement$day |> head(10)
+
+# Ina moznost extrahovania datumu
+library(lubridate, quietly = TRUE)
+measurement$time |> ymd() |> year() |> head(10)
+measurement$time |> ymd() |> month() |> head(10)
+measurement$time |> ymd() |> day() |> head(10)
+
+# 4. Odstráňte medzery zo stĺpca 'class'
+measurement$class |> head()
+measurement$class <- str_trim(measurement$class)
+measurement$class |> head()
+
+# 5. Preusporiadajte stĺpce
+measurement |> colnames()
+measurement <- measurement[, c("year", "month", "day", "class", "measurement")]
+measurement |> colnames()
+
+# Vypíšte výsledok
+measurement |> head()
+
+```
+
+# Hrátky s Deklarací nezávislosti
+
+Text Deklarace nezávislosti obsahuje chyby - miestami je viac medzier, než by malo byť.
+
+## Úkol 1: Detekcia a oprava medzier
+Vektor řetězců 'deklarace' obsahuje text Deklarace nezávislosti, jak jej přepsal nešikovný písař, který místy napsal víc mezer, než se patří.
+
+**Zadanie:**
+
+1. Vytvorte logický vektor, který bude mít TRUE u těch prvků vektoru `deklarace`, které obsahují několik mezer za sebou
+2. Spočítejte počet takových chyb v každém řetězci
+3. Opravte text tak, aby byla všude vždy právě jedna mezera
+
+**Funkcia:** `str_detect()`
+
+- `\\s` - whitespace (medzera, tab \t, nový riadok \n, \r, \f)
+- `{2,}` - **regex** - 2 alebo viac opakovaní
+
+```{r ukol1_1}
+deklarace |> head(2)
+
+# 1. Logický vektor: kde sú duplicitné medzery?
+# Použite regex \\s{2,}
+    # pattern: prazdny znak (\s) zopakovany dva a viackrát({2,}) 
+str_detect(string = deklarace, pattern = "\\s{2,}") 
+```
+2. Spočítejte počet takových chyb v každém řetězci
+
+**Funkcia:** `str_count()`
+```{r ukol1_2}
+# 2. Počet duplicitných medzier v každom prvku
+str_count(deklarace, "\\s{2,}")
+```
+3. Opravte text tak, aby byla všude vždy právě jedna mezera
+
+**Funkcia:** `str_replace_all()`, `str_squish()`
+
+- `str_squish()` - odstráni duplicitné medzery a trim
+```{r ukol1_3}
+# 3. Odstránenie duplicitných medzier
+# Spôsob 1: str_replace_all()
+    # parametre: text, co nahradit, cim nahradit
+str_replace_all(string = deklarace, pattern = "\\s+", replacement = " ") |> head(5)
+
+# Spôsob 2: str_squish() (jednoduchšie)
+str_squish(deklarace) |> head(5)
+```
+
+## Úkol 2: Formátovanie textu
+
+**Zadanie:** Vypište druhý odstavec opravené `Deklarace` tak, aby se text pěkně zalomil do odstavce o šířce 60 znaků.
+
+**Funkcie:** `str_wrap()`, `cat()`
+
+- `str_wrap()` - zalomí text na danú šírku
+- `cat()` - vypíše text s interpretáciou špeciálnych znakov (`\n`)
+
+```{r ukol2_wrap}
+deklarace <- str_squish(deklarace) 
+deklarace[2] |> str_wrap(width = 60) |> cat()
+```
+
+## Úkol 3: Pokazenie textu 
+
+**Zadanie:** Rozmyslete si, jak je možné pokazit text deklarace tak, že místo jedné mezery je v textu někdy větší množství mezer.
+
+```{r ukol3_pokazeni, eval=FALSE}
+# Nápoveda:
+   # 1. spojím všechny odstavce do jednoho (budou oddělené trubkou + trubku přidám i na konec)  
+   # a rozdělím na části v místech, kde jsou mezery;
+pokazeny <- deklarace |> str_c(collapse = '|') |> str_c('|') |> 
+  str_split(pattern = " ")
+  
+   # 2. pak slepím kusy s náhodným množstvím mezer a spojím zpět do jednoho řetězce;
+medzery <- purrr::map_chr(
+  seq_along(pokazeny[[1]]),
+  ~ str_dup(" ", sample(5, size = 1))
+  )
+# 3. nakonec řetězec rozbiju zpět na odstavce v místech, kde jsou trubky a zahodím
+# poslední "odstavec", který vznikl kvůli trubce přilepené na konec
+
+pokazeny <- str_c(pokazeny[[1]], medzery, collapse = "")
+pokazeny <- str_split(pokazeny, "\\|")[[1]]
+pokazeny <- pokazeny[-length(pokazeny)]
+pokazeny |> head()
+
+```
+
+# Oprava načtených dat
+
+## Úkol 1: Načítanie tabuľky
+
+**Zadanie:** Načtěte tabulku ze souboru "tec00001.tsv.gz" a vypište její hlavičku.
+
+**Poznámky:** Jedná se o data z Eurostatu o HDP na obyvateľa.
+
+
+```{r ukol1_tec}
+# Načítajte TSV súbor (tab-separated values)
+# col_types = "cnnnnnnnnnnnn" (1 character + 12 numeric stĺpcov)
+tec00001tsv <- read_tsv("tec00001.tsv.gz",
+                        col_types = "cnnnnnnnnnnnn")
+
+# Vypíšte hlavičku
+head(tec00001tsv)
+
+```
+
 ---
 
-# 🔗 Užitočné odkazy
+## Úkol 2: Rozdelenie prvého stĺpca
 
-- [stringr cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/strings.pdf)
-- [regex101.com](https://regex101.com/) - testovanie regex online
-- [R for Data Science - Strings](https://r4ds.had.co.nz/strings.html)
+**Zadanie:** Upravte tabulku `tec00001tsv` tak, že první sloupec nahradíte sloupci `item`, `unit` a `geo`, které získáte rozdělením původního prvního sloupce v místech, kde je čárka (`,`).
+
+**Poznámky:**
+
+- Prvý stĺpec má názov `na_item,unit,geo\\time`
+- treba použiť spätné apostrofy: `` `názov` ``, lebo to nie je platné meno
+- Alebo `[[1]]` pre prístup podľa pozície
+
+**Funkcie:** `str_split()`, `str_split()`, `str_split_fixed()`, alebo `tidyr::separate_wider_delim()`
+
+```{r ukol2_split}
+# Spôsob 1: str_split() a manuálne priradenie
+mat <- str_split(string = tec00001tsv$`na_item,unit,geo\\time`, 
+                 pattern = ",", 
+                 simplify = TRUE)
+mat |> dim()
+mat |> class()
+mat |> head(5)
+
+# vezme stlpec, zoberie riadky a rozdeli ho podla ciarky
+tec00001tsv_copy <- tec00001tsv
+tec00001tsv_copy$item <- mat[,1]
+tec00001tsv_copy$item |> head(5)
+
+tec00001tsv_copy$unit <- mat[,2]
+tec00001tsv_copy$unit |> head(5)
+
+tec00001tsv_copy$geo <- mat[,3]
+tec00001tsv_copy$geo |> head(5)
+
+
+# Spôsob 1a: 
+  # vezmi string v prvom stlpci, oddelovacom je ","
+tec00001tsv_copy2 <- tec00001tsv
+tec00001tsv_copy2$item <- str_split_i(string = tec00001tsv_copy2[[1]],
+                                      pattern = ',',
+                                      i = 1)
+tec00001tsv_copy2$unit <- str_split_i(string = tec00001tsv_copy2[[1]],
+                                      pattern = ',',
+                                      i = 2)
+tec00001tsv_copy2$geo <- str_split_i(string = tec00001tsv_copy2[[1]],
+                                      pattern = ',',
+                                      i = 3)
+
+# Spôsob 2: str_split_fixed() a cbind()
+mat <- str_split_fixed(tec00001tsv[[1]], ",", 3) # rozdeli na 3 stlpce
+mat |> dim()
+mat |> class()
+mat |> head(5)
+
+colnames(mat) <- c("item", "unit", "geo")
+mat |> head(5)
+
+mat <- as_tibble(mat)
+mat |> class()
+
+tec00001tsv_copy3 <- as_tibble(cbind(mat, tec00001tsv[, -1]))
+
+# Spôsob 3: tidyr::separate_wider_delim() (najjednoduchší)
+tec00001tsv_copy4 <- tec00001tsv
+tec00001tsv_copy4[, c("item", "unit", "geo")] <- str_split_fixed(string = tec00001tsv[[1]],
+                                                                 pattern = ',', 
+                                                                 n = 3)
+
+# zmena poradia stlpcov, vyhodenie prveho
+# pre vsetky sposoby okrem 1a
+col_no <- tec00001tsv_copy |> colnames() |> length()
+tec00001tsv_copy <- tec00001tsv_copy[, c((col_no - 2) : col_no, 2 : (col_no - 3))] # c(14:16, 2:13)
+tec00001tsv_copy |> head(5)
+
+```
+### Riešenie pomocou `tidyr::separate_wider_delim()`
+``` {r wider-delim}
+tec00001tsv_delim <- tidyr::separate_wider_delim(data = tec00001tsv, 
+                            cols = `na_item,unit,geo\\time`, 
+                            delim = ',', 
+                            names = c('item', 'unit', 'geo'))
+tec00001tsv_delim |> head()                            
+```
+
+# Dolování dat z řetězců
+
+Súbor "shops.txt" obsahuje data o cenách a nákladoch na dopravu Úžasných udělátek™ v rôznych obchodoch. Dáta bohužiaľ nie sú v žiadnom štandardnom formáte.
+
+## Úkol 1: Načítanie dát
+
+**Zadanie:** Načtěte data (po řádcích) a výsledok uložte do vektora `shopping`.
+
+**Funkcie:** `read_lines()` - lebo je to txt
+
+```{r ukol1_shops}
+# Načítajte súbor po riadkoch
+shopping <- read_lines('shops.txt')
+
+# Vypíšte prvých 6 riadkov pomocou cat()
+shopping |> head(6) |> cat(sep = "\n")
+
+```
+
+---
+
+## Úkol 2: Vytvorenie tabuľky
+
+**Zadanie:** Vytvorte z dat tabulku `shops`, která bude mít sloupce:
+
+1. `shop` - kódové jméno obchodu
+2. `price` - cena produktu (číslo)
+3. `shipping` - náklady na dopravu (číslo)
+4. `total_price` - celkové náklady
+
+**Nápoveda:**
+
+- Postupnosť: extrahujte text → odstráňte nežiaduce časti → konvertujte na číslo
+- Použite pipe operátor `|>` pre postupné operácie
+- `str_match()[, 2]` vráti prvú zachytenú skupinu z regex
+
+**Funkcie:** `str_extract()`, `str_match()`, `str_remove()`, `str_replace()`, `as.numeric()`
+
+**Regex vzory:**
+
+- Názov obchodu: `^[-\\w]+`
+- Cena: `cena:\\s*\\d+\\s*\\.?\\s*\\d*\\s*Kč`
+- Doprava: `doprava:\\s*\\d+\\s*Kč`
+
+```{r ukol2_shops_tabulka}
+# Najprv nahraďte "zdarma" za "0 Kč"
+shopping <- shopping |> str_replace("zdarma", "0 Kč")
+shopping |> head()
+
+# Vytvorte tabulku s 4 stĺpcami
+
+# 1. Extrahujte názov obchodu (od začiatku po prvú medzeru)
+shop <- str_extract(shopping, "^[-\\w]+") 
+shop |> head()
+
+# 2. Extrahujte cenu (číslo z "cena: ... Kč")
+
+# Vysvetlenie vyrazu:
+# cena:\\s*(\\d+\\s*\\.?\\s*\\d*)\\s*Kč"
+  # \\s* - nula nebo více bílých znaků (mezery, tabulátory)
+  # \\d+ = jedna nebo více číslic (povinné)
+  # \\.? = nepovinná tečka (desetinný oddělovač) - ? znamená 0 nebo 1x
+  # \\d* = nula nebo více číslic (desetinná část - nepovinná)
+price <- str_extract(shopping, "cena:\\s*\\d+\\s*\\.?\\s*\\d*\\s*Kč") |> 
+  str_remove_all("[\\s,\\.]") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+# 3. Extrahujte dopravu (číslo z "doprava: ... Kč")
+shipping <- str_extract(shopping, "doprava:\\s*\\d+\\s*Kč") |> 
+  str_extract("\\d+") |> 
+  as.numeric()
+
+# 4. Vypočítajte celkovú cenu
+total_price <- price + shipping
+
+# Vypíšte výsledok
+shops <- tibble(shop, price, shipping, total_price)
+shops |> head()
+
+```
+
+## Úkol 3: Najlacnejší obchod
+
+**Zadanie:** Ktorý obchod je najlacnejší (najnižšia celková cena)?
+
+```{r ukol3_najlacnejsi}
+# Nájdite obchod s minimálnou celkovou cenou
+shops[shops$total_price == min(shops$total_price, na.rm = TRUE),]
+
+```
+
+# Trick or Treat, Trump or Tramp
+
+V tejto sekcii budeme pracovať s textom a vyhľadávať vzory.
+
+## Úkol 1: Načítanie dát, odstránenie retweetov
+
+**Zadanie:** 
+Načtěte data ze souboru “trump.csv.gz”, který má strukturu standardního CSV, a data uložte do tabulku trump. Tabulka trump obsahuje tweety prezidenta Trumpa z období od 1. ledna do 30. září 2017. Zdroj dat je http://www.trumptwitterarchive.com/archive. Struktura dat je následující:
+
+source … zařízení, kde tweet vznikl
+text … text tweetu
+created_at … den a hodina vzniku tweetu
+retweet_count
+favorite_count
+is_retweet … jestli je retweet cizího tweetu
+id_str … identifikační číslo
+Po načtení dat odstraňte z tabulky všechny retweety.
+
+```{r trump1}
+trump <- read_csv("trump.csv.gz",
+                  col_types = cols(
+                      source = col_character(),
+                      text = col_character(),
+                      created_at = col_character(),
+                      retweet_count = col_integer(),
+                      favorite_count = col_integer(),
+                      is_retweet = col_logical(),
+                      id_str = col_double()))
+trump <- trump[!trump$is_retweet, ]
+```
+
+---
+
+## Úkol 2: Trump or Obama
+
+**Zadanie:** Zjistěte, jestli Trump mluví častěji o Trumpovi nebo o Obamovi. (Napište kód tak, aby nezáleželo na tom, jestli jsou jména napsaná malými nebo velkými písmeny.)
+
+**Funkcie:**
+- `regex()` - Vytvára objekt s nastaveniami pre regulárny výraz, ktorý možno použiť v iných funkciách (`str_detect()`, `str_extract()`, atď.)
+
+```{r trump2}
+regex(pattern = "obama", ignore_case = TRUE)
+
+trump$text |> str_count(regex(pattern = "obama", ignore_case = TRUE)) |>
+  sum()
+
+trump$text |> str_count(regex(pattern = "trump", ignore_case = TRUE)) |>
+  sum()
+```
+
+---
+
+## Úkol 3: Nálada
+
+**Zadanie:** Zjistěte, jestli Trump používá častěji pozitivní nebo negativní slova. Budeme předpokládat, že
+
+- pozitivní slova jsou “good”, “excellent”, “perfect”, “correct” a “nice”
+- negativní slova jsou “poor”, “bad”, “wrong”, “awful” a “incorrect”
+
+Opět by nemělo záležet na tom, zda jsou slova napsána malými nebo velkými písmeny.
+
+```{r trump3}
+positive_words <- c("good", "excellent", "perfect", "correct", "nice")
+positive_words <- positive_words |> str_c(collapse = "|")
+positive_regex <- str_c("\\b(", positive_words, ")\\b") |> regex(ignore_case = TRUE)
+trump$text |> str_count(positive_regex) |> sum()
+
+# alebo natvrdo napísat slova do regularneho vyrazu
+trump$text |> str_count(regex("\\b(poor|bad|wrong|awful|incorrect)\\b",
+                              ignore_case = TRUE)) |>
+  sum()
+```
+---
+
+## Úkol 4: Dni tweetovania
+
+**Zadanie:** Zjistěte, které dny v týdnu Trump nejčastěji tweetuje.
+
+Nápověda:
+
+- Všimněte si, že první tři znaky proměnné `created_at` indikují den v týdnu, kdy byl tweet vytvořen.
+- Konstrukce `prop.table(table(x))` vrátí tabulku frekvence výskytů diskrétních znaků uložených ve vektoru `x`.
+- Výsledek můžete uložit do tabulky, která bude mít dva sloupce: `day` a `frequency` a setřídit pořadí řádků od nejvyšší po nejnižší frekvenci.
+
+```{r trump4}
+day_c <- trump$created_at |> str_sub(start = 1, end = 3)
+day_c |> table()
+
+day_c <- day_c |> table() |> prop.table()
+day_c
+
+days <- tibble(day = names(day_c), frequency = as.vector(day_c))
+days
+
+days <- days[order(days$frequency, decreasing = TRUE),]
+days 
+```
+
+---
+
+## Úkol 5: Histogram
+
+**Zadanie:** Zjistěte, ve kterých hodinách Trump nejvíc tweetuje a vykreslete je do histogramu.
+
+Nápověda:
+
+- Všimněte si, že čas, kdy byl tweet pořízen je uložen v proměnné `created_at`.
+- Histogram vykreslíte funkcí `hist()`. Hodiny však před tím musíte převést na číslo.
+
+```{r trump5}
+# najdi HH:MM:SS
+# str_match(trump$created_at, '(\\d{2}):\\d{2}:\\d{2}')
+#        [,1]       [,2]
+# [1,] "14:30:45"  "14"   <- celý match | skupina 1
+# [2,] "09:15:22"  "09"
+# [3,] "23:59:01"  "23"
+# Stĺpec 1 [,1]: celý match (HH:MM:SS)
+# Stĺpec 2 [,2]: prvá capturing group (\\d{2}) = hodiny
+hour <- str_match(string = trump$created_at,
+                  pattern = '(\\d{2}):\\d{2}:\\d{2}')[,2]
+hour |> head()
+hour |> class()
+
+hist(as.numeric(hour))
+```
+
+## Úkol 6: Pocet uzivatelov
+
+**Zadanie:** Zjistěte, o kterých lidech a organizacích mluví Trump nejčastěji. Budeme uvažovat pouze ty lidi a organizace, které jsou na Twitteru, tj. před jejichž jménem je umístěn znak @.
+
+Nápověda:
+
+- Získejte všechny výskyty jmen za @ v textu tweetů a převeďte je na vektor řetězců. Vynechejte případné prázdné řetězce.
+- Funkce table() vrátí tabulku s počtem výskytů každého jména.
+- Výsledek uložte do tabulky a setřiďte podle počtu výskytů.
+
+```{r trump6}
+# vyber osob
+osoby <- str_extract_all(trump$text, '@[a-zA-Z0-9_]{1,15}') |> unlist()
+
+# bez zavinaca
+osoby <- str_replace(osoby, '@', '')
+
+# tabulka
+osoby <- table(osoby)
+osoby <- tibble(person = names(osoby), count = as.integer(osoby))
+
+osoby <- osoby[order(osoby$count, decreasing = TRUE), ]
+osoby
+
+```
+
+## Úkol 7: O Macronovi
+
+**Zadanie:** Zjistěte, co napsal p. Trump o p. Macronovi.
+
+```{r trump7}
+str_subset(string = trump$text, pattern = 'Macron') |> cat()
+
+```
+
+
 
