@@ -40,7 +40,7 @@ V tomto cvičení si procvičíte používání základních nástrojů z balík
 
 ```{r packages}
 # Načtěte potřebné balíky
-
+library(tidyverse)
 
 ```
 
@@ -54,8 +54,16 @@ Analyzujte data o úmrtích řidičů ve Velké Británii v souvislosti se zaved
 
 ```{r rozehnuti_data}
 # Načtěte data
+seatbelts <- datasets::Seatbelts %>% 
+  as.matrix()
 
-
+seatbelts <- data.frame(as.matrix(seatbelts), year=time(seatbelts), month = cycle(seatbelts)) %>% 
+    as_tibble() %>% 
+    mutate(
+        year = as.character(year) %>% str_extract("^\\d{4}"),
+        month = ifelse(month < 10, str_c("0",month), as.character(month)),
+        date = str_c(year,"-",month,"-01") %>% as.Date()
+    )
 # Prozkoumejte strukturu dat
 
 
@@ -66,6 +74,9 @@ Analyzujte data o úmrtích řidičů ve Velké Británii v souvislosti se zaved
 ```{r rozehnuti_vizualizace}
 # Vytvořte základní bodový graf
 
+seatbelts |> 
+  ggplot(aes(x = date, y = drivers)) +
+    geom_line()
 
 ```
 
@@ -73,15 +84,147 @@ Analyzujte data o úmrtích řidičů ve Velké Británii v souvislosti se zaved
 
 ```{r rozehnuti_male_rozsireni}
 # Přidejte další estetické vlastnosti (barva, tvar bodů)
-
+seatbelts |>
+  mutate(
+    law = law > 0
+  ) |> 
+  ggplot(
+    aes(x = date, y = drivers, color = law)
+    ) +
+  geom_line()
 
 ```
 
 ## Zajímavější rozšíření...
+nejaka rozumna transformacia hodnot do farieb
 
 ```{r rozehnuti_zajimave_rozsireni}
 # Přidejte trendy, popisky, vylepšete vzhled
+# skalovanie hodnoty do farieb - colorbrewer2.org
+seatbelts |>
+  mutate(
+    law = law > 0
+  ) |> 
+  ggplot(
+    aes(x = date, y = drivers, color = law)
+    ) +
+  geom_line() +
+  scale_color_brewer(
+    "Plati zakon o povinnem \nnoseni pasu?",
+    palette = "Dark2",
+    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+  )
 
+seatbelts |>
+  mutate(
+    law = law > 0
+  ) |> 
+  ggplot(
+    aes(x = date, y = drivers, color = law)
+    ) +
+  geom_line() +
+  geom_point() +
+  scale_color_brewer(
+    "Plati zakon o povinnem \nnoseni pasu?",
+    palette = "Dark2",
+    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+  )
+
+seatbelts |>
+  mutate(
+    law = law > 0
+  ) |> 
+  ggplot(
+    aes(x = date, y = drivers, color = law)
+    ) +
+  geom_line() +
+  geom_point() +
+  annotate( # vykreslenie hranic je podla dat, nie podla annotate
+    "rect",
+    ymin = -Inf,
+    ymax = Inf,
+    xmax = Inf,
+    xmin = as.Date("1983-01-31")
+  ) +
+  scale_color_brewer(
+    "Plati zakon o povinnem \nnoseni pasu?",
+    palette = "Dark2",
+    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+  )
+
+# zmena poradia prvkov a ciastocna priehladnost
+seatbelts |>
+  mutate(
+    law = law > 0
+  ) |> 
+  ggplot(
+    aes(x = date, y = drivers, color = law)
+    ) +
+  annotate( 
+    "rect",
+    ymin = -Inf,
+    ymax = Inf,
+    xmax = Inf,
+    xmin = as.Date("1983-01-31"),
+    alpha = 0.3
+  ) +
+  geom_line() +
+  geom_point() +
+  scale_color_brewer(
+    "Plati zakon o povinnem \nnoseni pasu?",
+    palette = "Dark2",
+    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+  )
+
+# smooth
+seatbelts |>
+  mutate(
+    law = law > 0
+  ) |> 
+  ggplot(
+    aes(x = date, y = drivers, color = law)
+    ) +
+  annotate( 
+    "rect",
+    ymin = -Inf,
+    ymax = Inf,
+    xmax = Inf,
+    xmin = as.Date("1983-01-31"),
+    alpha = 0.3
+  ) +
+  geom_line() +
+  geom_point() +
+  geom_smooth() +
+  scale_color_brewer(
+    "Plati zakon o povinnem \nnoseni pasu?",
+    palette = "Dark2",
+    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+  )
+
+# odstranenie farby, ale namiesto toho group
+seatbelts |>
+  mutate(
+    law = law > 0
+  ) |> 
+  ggplot(
+    aes(x = date, y = drivers, group = law)
+    ) +
+  annotate( 
+    "rect",
+    ymin = -Inf,
+    ymax = Inf,
+    xmax = Inf,
+    xmin = as.Date("1983-01-31"),
+    alpha = 0.3
+  ) +
+  geom_line() +
+  geom_point() +
+  geom_smooth() +
+  scale_color_brewer(
+    "Plati zakon o povinnem \nnoseni pasu?",
+    palette = "Dark2",
+    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+  )
 
 ```
 
@@ -95,10 +238,11 @@ Vizualizace dat o zdraví a fyzické kondici.
 
 ```{r ukol_a_nacteni}
 # Načtěte data
-
+oly12 <- VGAMdata::oly12 %>%
+  as_tibble()
 
 # Zobrazení prvních řádků
-
+print(oly12)
 
 ```
 
@@ -106,7 +250,99 @@ Vizualizace dat o zdraví a fyzické kondici.
 
 ```{r ukol_a_1}
 # Vytvořte základní grafy pro pochopení dat
+oly12 |> 
+  ggplot(
+    aes(x = Height, y = Weight)
+  ) + 
+  geom_point()
+# prilis vela bodov, vola sa to overplotting
 
+
+# pohlavie
+oly12 |> 
+  arrange(Sex) |> 
+  ggplot(
+    aes(x = Height, y = Weight, color = Sex)
+  ) + 
+  geom_point()
+
+# priehladnost bodov
+oly12 |> 
+  arrange(Sex) |> 
+  ggplot(
+    aes(x = Height, y = Weight, color = Sex)
+  ) + 
+  geom_point(
+    alpha = 0.1
+  )
+
+# pridam geom_smooth
+oly12 |> 
+  arrange(Sex) |> 
+  ggplot(
+    aes(x = Height, y = Weight, color = Sex)
+  ) + 
+  geom_point(
+    size = 0.1,
+    alpha = 0.1
+  ) +
+  geom_smooth()
+
+# namiesto stvorcov sestuholniky
+oly12 |> 
+  arrange(Sex) |> 
+  ggplot(
+    aes(x = Height, y = Weight)
+  ) + 
+  geom_hex()
+
+# vlastnosti
+oly12 |> 
+  arrange(Sex) |> 
+  ggplot(
+    aes(x = Height, y = Weight)
+  ) + 
+  geom_hex() +
+  scale_fill_distiller(
+    palette = "Green",
+    direction = -1
+  )
+
+# rozdel na facety
+oly12 |> 
+  arrange(Sex) |> 
+  ggplot(
+    aes(x = Height, y = Weight)
+  ) + 
+  geom_hex() +
+  scale_fill_distiller(
+    palette = "Green",
+    direction = -1
+  ) +
+  facet_wrap(~Sex) # rovnake hranice
+
+oly12 |> 
+  arrange(Sex) |> 
+  ggplot(
+    aes(x = Height, y = Weight, color = Sex)
+  ) + 
+  geom_density_2d()
+
+# iny pristup: vybrat nahodny set
+
+
+oly12_sample <- oly12 |> 
+  group_by(Sex) |>
+  slice_sample(n = 1000) |> 
+  ungroup()
+
+set.seed(42)
+oly12_sample |> 
+  arrange(Sex) |> 
+  ggplot(
+    aes(x = Height, y = Weight, color = Sex)
+  ) + 
+  geom_density_2d()
 
 ```
 
