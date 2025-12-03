@@ -26,6 +26,10 @@ knitr::opts_chunk$set(
 ```
 
 # Úvod
+**Základní zdroj**
+
+Claus O. Wilke: Fundamentals of Data Visualization (kapitoly 6-14, 16)
+https://clauswilke.com/dataviz/visualizing-amounts.html
 https://is.muni.cz/auth/el/econ/podzim2025/MPE_AVED/um/exercises/ex10.html
 
 Cvičení na **exploratorní analýzu dat (EDA)** s důrazem na vizualizaci:
