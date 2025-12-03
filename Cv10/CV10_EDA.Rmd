@@ -1,7 +1,7 @@
 ---
 title: "Cvičení 10: Exploratory Data Analysis - Vizualizace dat"
 subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
-author: "Vaše meno"
+author: "Dana Kozáková"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -25,9 +25,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-# 📚 Úvod
+# Úvod
+https://is.muni.cz/auth/el/econ/podzim2025/MPE_AVED/um/exercises/ex10.html
 
-V tomto cvičení si procvičíte **exploratorní analýzu dat (EDA)** s důrazem na vizualizaci. Naučíte se:
+Cvičení na **exploratorní analýzu dat (EDA)** s důrazem na vizualizaci:
 
 - **Vizualizovat rozdělení diskrétních proměnných** - sloupcové grafy
 - **Vizualizovat rozdělení spojitých proměnných** - histogramy, hustotní grafy, box ploty
@@ -35,17 +36,17 @@ V tomto cvičení si procvičíte **exploratorní analýzu dat (EDA)** s důraze
 - **Identifikovat vzory a anomálie** v datech
 - **Vytvářet informativní a profesionální vizualizace**
 
-# 📦 Načítání balíků
+# Načítání balíků
 
 ```{r packages}
 # Načtěte potřebné balíky
-
+library(tidyverse)
 
 ```
 
 ---
 
-# 📊 Vizualizace rozdělení diskrétní proměnné (množství)
+# Vizualizace rozdělení diskrétní proměnné (množství)
 
 Diskrétní (kategorické) proměnné mají omezený počet hodnot. Pro jejich vizualizaci používáme především sloupcové grafy.
 
@@ -53,20 +54,303 @@ Diskrétní (kategorické) proměnné mají omezený počet hodnot. Pro jejich v
 
 ```{r diskretni_data}
 # Načtěte data pro analýzu diskrétních proměnných
-
+dfd <- readr::read_csv("https://is.muni.cz/go/t0tt37")
 
 # Prozkoumejte strukturu dat
+mean(dfd$x)
 
+# cez lapply
+dfd |> lapply(mean)
 
+# nebo cez map v purr (purr sucastou tidyverse), je to ekvivalentne, kedysi bol map trochu rychlejší
+dfd |> map(mean)
+
+# krajsi vystup
+dfd |> 
+  map(mean) |>
+  as.tibble()
+
+# ale chceme len pre numericke stlpce
+is.numeric(dfd)
+is.numeric(dfd$x)
+lapply(dfd, is.numeric)
+unlist(lapply(dfd, is.numeric)) # maska, ktora vyberie len numericke stlpce
+
+dfd[unlist(lapply(dfd, is.numeric))] |> 
+  map(mean) |>
+  as.tibble()
+
+# trochu krajsi zapis predchadzajuceho 
+#dfd[map_lgl(dfd, is.numeric)] |>
+#  map_dbl(dfd) |> 
+#  as.tibble()
+```
+funguje to preto, ze dataframe aj tibble sú specialne pripady listu a obe funkcie `map` aj `lapply` sú iterátory cez položky listu (= stĺpce)
+
+**Funkce `summarise`**
+- musí mať jeden výstup (pri priemere je to ok, pri kvantiloch už nemusí)
+```{r}
+# riesenie pomocou tidyverse, ale toto nebude fungovat, ak tam bude NA hodnota
+dfd |> 
+  summarise(
+    across(
+      where(is.numeric),
+      mean
+    )
+  )
+
+# Anonymní (lambda) funkcie
+# 1. sposob:
+dfd |>
+  summarise(
+    across(
+      where(is.numeric), 
+      ~ mean(., na.rm = TRUE) # len pre vynechanie NA hodnot
+    )
+  )
+
+# 2. sposob:
+dfd |>
+  summarise(
+    across(
+      where(is.numeric), 
+      \(x) mean(x, na.rm = TRUE) # \(x) je oznacenie vstupneho parametra
+    )
+  )
+
+# 3. sposob: ak je funkcia zlozitejsia - na viac riadkov
+dfd |>
+  summarise(
+    across(
+      where(is.numeric), 
+      \(x){ # medzi {} je telo funkcie
+        na.omit(x) |>
+          mean()
+      }
+    )
+  )
+
+# alebo vlastna funkcia, nie lambda funkcia
+mean_na <- function(x) mean(x, na.rm = TRUE)
+
+dfd |>
+  summarise(
+    across(
+      where(is.numeric),
+      mean_na
+    )
+  )
+```
+**Funkcia `reframe`** namiesto summarise
+```{r}
+# Využití experimentální fuknce reframe (summarise co vrací i větší počet řádků na grupu):
+dfd |>
+  reframe(
+    across(
+      where(is.numeric),
+      \(x){
+        # Vytvářím pojmenovaný vektor
+        c(
+          "Mean" = mean(x),
+          "Sd" = sd(x)
+        )
+      }
+    )
+  )
+```
+**Riešenie so základnými funkciami**
+```{r}
+dfd |> 
+  select(
+    where(is.numeric)
+  ) |>
+  pivot_longer(
+    everything()
+    ) |>
+  group_by(name) |>
+  summarise(
+    Mean = mean(value),
+    Sd = sd(value)
+  )
+```
+**Grafy**
+```{r}
+dfd |> 
+  pivot_longer(everything()) |> 
+  ggplot(
+    aes(x = value, fill = name)
+  ) +
+  geom_histogram(
+    alpha = 0.5 # pruhy nad sebou, default je "stack"
+  ) 
+
+dfd |> 
+  pivot_longer(everything()) |> 
+  ggplot(
+    aes(x = value, fill = name)
+  ) +
+  geom_histogram(
+    alpha = 0.5,
+    position = "identity"
+  ) 
+
+# trochu krajsie
+dfd |> 
+  pivot_longer(everything()) |> 
+  ggplot(aes(x = value, fill = name)) +
+  geom_histogram(
+    alpha = 0.5,
+    position = "identity"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_bw()
+
+# trochu divocina so stat_bin(), takto sa to nepouziva
+dfd |> 
+  pivot_longer(everything()) |> 
+  ggplot(aes(x = value, fill = name)) +
+  stat_bin()
+
+```
+**Pouzitie jednej vlastnosti do viacerych parametrov**
+
+- x a y sa rozlisuje aj podla farby, aj podla typu hranicnej ciary
+```{r}
+dfd |>
+  pivot_longer(everything()) |>
+  ggplot(
+    aes(x = value, fill = name, linetype = name)
+  ) +
+  geom_density(
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette = "Set2"
+  ) +
+  theme_bw()
+```
+**Graf rug**
+```{r}
+dfd |>
+  pivot_longer(everything()) |>
+  ggplot(
+    aes(x = value)
+  ) +
+  geom_density(
+    alpha = 0.5
+  ) +
+  geom_rug() +
+  facet_wrap(~ name) +
+  theme_bw()
+```
+**Boxplot**
+```{r}
+set.seed(42)
+
+dfd |>
+  pivot_longer(everything()) |>
+  ggplot(
+    aes(y = value, x = name)
+  ) +
+  geom_jitter(
+    height = 0,
+    alpha = 0.2
+    ) +
+  geom_boxplot(
+    outliers = FALSE,
+    fill = NA
+  ) +
+  theme_bw()
+```
+
+**GGplot s gghalves**
+
+- ale tu asi nemame kontrolu nad tym, ci sa to neprekryva
+```{r}
+library(gghalves)
+set.seed(42)
+
+dfd |>
+  pivot_longer(everything()) |>
+  ggplot(
+    aes(y = value, x = name)
+  ) +
+  geom_half_boxplot(
+    outliers = FALSE,
+    fill = NA
+  ) +
+  geom_half_dotplot() +
+  theme_bw()
+```
+**What's the point?**
+```{r}
+dfd |>
+  ggplot(
+    aes(x = x, y = y)
+  ) +
+  geom_point() +
+  theme_bw()
+
+library(ggside)
+
+dfd |>
+  ggplot(
+    aes(x = x, y = y)
+  ) +
+  geom_point() +
+  geom_xsidedensity() +
+  geom_ysidedensity() +
+  theme_bw()
 ```
 
 ## Cvičení A
+V prvním příkladu zkuste z tabulky starwars (v `dplyr`) vykreslit rozdělení (četnost) barvy očí (`eye_color`). Jedná se o diskrétní proměnnou, a proto je pro vykreslení množství vhodné sáhnout pro sloupcový graf.
 
 **Zadání:** Vytvořte sloupcový graf zobrazující četnosti kategorií.
 
 ```{r cviceni_a}
 # Sloupcový graf pro diskrétní proměnnou
+starwars %>%
+  ggplot(aes(x = eye_color)) +
+  geom_bar()
 
+# manualne zoradenie cez faktorizovany vektor
+starwars %>%
+  mutate(
+    eye_color = factor(eye_color, levels = c(
+      "brown","blue","yellow","black","orange","red","hazel","unknown",
+      "blue-gray","dark","gold","green, yellow","pink","red, blue","white"
+    ))
+  ) %>%
+  ggplot(aes(x = eye_color)) +
+  geom_bar()
+
+# lepsie riesenie
+## najprv rozdelit do grup a spocitat
+starwars %>%
+  group_by(eye_color) %>%
+  summarise(obs = n()) # nefunguje obs = nrow(.)
+
+## potom zoradit
+starwars %>%
+  group_by(eye_color) %>%
+  summarise(obs = n()) %>%
+  arrange(desc(obs))
+
+## a takto zoradene priradim do levels
+starwars %>%
+  group_by(eye_color) %>%
+  summarise(obs = n()) %>%
+  arrange(desc(obs)) %>% 
+  mutate(eye_color = factor(eye_color, levels = eye_color))
+
+starwars %>%
+  group_by(eye_color) %>%
+  summarise(obs = n()) %>%
+  arrange(desc(obs)) %>% 
+  mutate(eye_color = factor(eye_color, levels = eye_color))%>% 
+  ggplot(aes(x = eye_color, y = obs)) +
+  geom_col() # uz nemoze byt geom_bar, lebo to nevie pracovat s dvojicou
 
 ```
 
