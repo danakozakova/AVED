@@ -1,7 +1,7 @@
 ---
 title: "Cvičení 12: Ekonometrie v R"
 subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
-author: "Vaše meno"
+author: "Dana Kozáková"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# 📚 Úvod
+# Úvod
 
 V tomto cvičení si procvičíte základní ekonometrické metody v R:
 
@@ -35,47 +35,163 @@ V tomto cvičení si procvičíte základní ekonometrické metody v R:
 - **Panelová data** - fixed effects, random effects
 - **Vizualizace odhadů** - grafy koeficientů a predikce
 
-# 📦 Načítání balíků
+# Načítání balíků
 
 ```{r packages}
-# Načtěte potřebné balíky
-# library(tidyverse)
-# library(broom)
+library(tidyverse)
+library(broom) # vezme objekt a vyklopi ho do tibble
+# library(gt)
 # library(lmtest)
 # library(sandwich)
 # library(plm)
 # library(stargazer)
-# library(modelsummary)
-
+# library(modelsummary) # na zobrazenie jednoduchych vystupov z modelov
 
 ```
 
 ---
 
-# 🔥 Cvičení na rozehřátí: Dlouhý a široký
+# Cvičení na rozehřátí: Dlouhý a široký
 
 Úvod do práce s ekonometrickými daty a jejich transformace.
+V tomto cvičení se podíváme na to, jak se dělá test shody středních hodnot – t-test. Podíváme se na data z tabulky `VGAMdata::ugss`:
 
 ## Načtení dat
 
 ```{r rozehnuti_data}
 # Načtěte data
+ugss <- VGAMdata::ugss %>% as_tibble()
+ugss |> head()
+```
 
+**Pohled na data**
+Bude nás zajímat, zda ženy a muži (sex) platí stejně za holiče (hair).
+Nejprve si to můžeme nakreslit:
 
-# Prozkoumejte strukturu
+```{r}
+ugss %>% 
+  ggplot(aes(x = hair, fill = sex)) +
+  geom_density(alpha = 0.4, bw = 10) + 
+  theme_classic()
+```
 
+1. Co na to říká **t-test**? Hint: přečtěte si nápovědu k funkci `t.test()` a zkuste použít metodu pro třídu `formula`.
+```{r}
+ugss %>% t.test(hair ~ sex, data = .)
+```
+
+2. S normalitou výdajů na kadeřníka to bude asi problematické. Zkuste použít Mann-Whitney U-test (`wilcox.test()`)
+```{r}
+ugss %>% wilcox.test(hair ~ sex, data = .)
+```
+Funkce vracejí objekty různých tříd (např. `htest`). Občas se hodí vytvořit si z těchto objektů tabulku s přehledem výsledků. K tomu se dá například použít funkce `broom::glance()`.
+Ta ze vstupního objektu vytvoří sumarizační tabulku o jednom řádku. Funkce funguje pouze pro objekty, pro které v balíku broom existuje metoda.
+```{r}
+ugss %>% wilcox.test(hair ~ sex, data = .) %>% glance()
+ugss %>% t.test(hair ~ sex, data = .) %>% glance()
 
 ```
 
-## Transformace dat
+**Hrátky s `lm()`**
+```{r}
+r <- ugss %>% lm(sleep ~ sex, data = .)
+r
+```
+Referenční hodnota je female. Chceme změnit na "male". 
+```{r}
+ugss |> mutate(sex = sex |> relevel(ref = "male")) %>%
+  lm(sleep ~ sex, data = .)
+```
+Ešte aj významnost:
+```{r}
+ugss |> mutate(sex = sex |> relevel(ref = "male")) %>%
+  lm(sleep ~ sex, data = .) |> summary()
+```
+Namiesto lm z knižnice `tidyverse` použijeme `feols()` z kniznice `fixest`
+```{r}
+library(fixest)
+ugss |> mutate(sex = sex |> relevel(ref = "male")) %>%
+  feols(sleep ~ sex, data = .)
+```
+
+Aj definovat ako počítať strednú chybu:
+```{r}
+library(fixest)
+ugss |> mutate(sex = sex |> relevel(ref = "male")) %>%
+  feols(sleep ~ sex, data = ., vcov = "HC1")
+```
+
+Použitie parametra `split`:
+```{r}
+
+```
+
+## Zmena referencnej hodnoty v regresii
 
 ```{r rozehnuti_transformace}
 # Transformujte data mezi dlouhým a širokým formátem
+ugss |> mutate(sex = sex |> relevel(ref = "male")) %>%
+  feols(
+    sleep ~ age, 
+    data = ., 
+    vcov = "HC1",
+    fsplit = ~ sex)
 
+```
+## Budovanie regresného modelu
+Postupne budujeme regresný model
+
+- najprv zoznam
+```{r}
+list(
+  sleep ~ age,
+  sleep ~ age + pierced, 
+  sleep ~ age + pierced + eyes | tattoeed
+)
+```
+
+```{r}
+list(
+  sleep ~ age,
+  sleep ~ age + pierced, 
+  sleep ~ age + pierced + eyes | tattooed
+) |> 
+  map(\(x){feols(x, data = ugss)})
+```
+
+
+```{r}
+library(Formula)
+# príklad 
+s <- a ~ b
+update(s, .~.|g)
+# musim sklopit do triedy Formula, aby fungovalo viacprvkove
+update(as.Formula(s), .~.|g)
 
 ```
 
-**Otázka:** Kdy je vhodné použít dlouhý formát a kdy široký?
+```{r}
+list(
+  sleep ~ age,
+  sleep ~ age + pierced, 
+  sleep ~ age + pierced + eyes | tattooed
+) |> 
+  map(\(x){feols(x, data = ugss)}) |>
+  map(broom::tidy)
+```
+
+
+```{r}
+library(modelsummary)
+list(
+  sleep ~ age,
+  sleep ~ age + pierced, 
+  sleep ~ age + pierced + eyes | tattooed
+) |> 
+  map(\(x){feols(x, data = ugss)}) |>
+  modelsummary()
+```
+
 
 ---
 
