@@ -1,7 +1,7 @@
 ---
 title: "Cvičení 7: tidyr - Transformace dat"
 subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
-author: "Vaše meno"
+author: "Mgr. Dana Kozáková"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -23,9 +23,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-# 📚 Úvod
+# Úvod
 
-V tomto cvičení si procvičíte používání základních nástrojů z balíku **tidyr**, které znáte z přednášky:
+Používání základních nástrojů z balíku **tidyr**:
 
 - **`pivot_longer()`** - transformace široké tabulky na dlouhou (wide → long)
 - **`pivot_wider()`** - transformace dlouhé tabulky na širokou (long → wide)
@@ -34,17 +34,88 @@ V tomto cvičení si procvičíte používání základních nástrojů z balík
 - **`fill()`** - vyplnění chybějících hodnot
 - **`separate_rows()`** - rozdělení buněk na více řádků
 
-# 📦 Načítání balíků
+## Testové otázky CV07
+
+### Otázka 1
+
+**Implicitní chybějící hodnoty můžeme v tabulce změnit na explicitní pomocí funkce:**
+
+| Možnost | Odpověď|
+|---------|---------------------------|
+| **complete()** | ✅ **SPRÁVNĚ** |
+| `fill()` | ❌ - vyplní hodnoty NA hodnotami z predchádzajúceho riadku |
+| `replace_na()` | ❌ - nahradí explicitné NA konkrétnou hodnotou |
+| `drop_na()` | ❌ - odstráni riadky s NA |
+
+**Implicitné NA** - kombinácia hodnôt, ktorá v dátach chýba (riadok neexistuje)
+
+**Explicitné NA** - bunka obsahuje hodnotu NA
+
+```{r eval = TRUE}
+library(tidyr)
+df <- tibble(
+  rok = c(2020, 2020, 2021),
+  mesiac = c(1, 2, 1),
+  hodnota = c(10, 20, 30)
+)
+df
+complete(df, rok, mesiac) # Pridá riadok s rok=2021, mesiac=2, hodnota=NA
+```
+
+---
+
+### Otázka 2
+
+**Představte si tabulku, ve které jeden sloupec obsahuje řetězce ve formátu "jméno_příjmení". Pokud z tohoto sloupce chceme vytvořit dva nové, z nichž jeden bude obsahovat pouze jméno a druhý pouze příjmení, použijeme funkci:**
+
+| Možnost | Odpověď |
+|---------|---------|
+| **separate()** | ✅ **SPRÁVNĚ** |
+| `pivot_wider()` | ❌ - transformuje dlhý formát na široký |
+| `fill()` | ❌ - vyplní hodnoty NA hodnotami z predchádzajúceho riadku |
+| `str_split()` | ❌ - rozdelí reťazec, ale nevytvorí stĺpce v tibble |
+
+**Vysvetlenie:**
+```{r eval = TRUE}
+df <- tibble(meno_priezvisko = c("Jan_Novák", "Eva_Svobodová"))
+df
+separate(df, meno_priezvisko, into = c("meno", "priezvisko"), sep = "_")
+```
+
+---
+
+### Otázka 3
+
+**Vyberte správné tvrzení o definici tidy dat:**
+
+| Možnost | Odpověď |
+|---------|---------|
+| Pozorování musí mít jednoznačný identifikátor | ❌ - nie je to požiadavka tidy dat |
+| **Jedna tabulka nemá obsahovat více typů pozorování** | ✅ **SPRÁVNĚ** |
+| Počet proměnných může být větší než počet sloupců | ❌ - každá premenná = jeden stĺpec |
+| Maximální velikost tabulky je dána velikostí operační paměti (RAM) | ❌ - nesúvisí s definíciou tidy |
+
+**Vysvetlenie:** Tri pravidlá **tidy dat** (Hadley Wickham):
+
+1. Každá premenná má vlastný stĺpec
+2. Každé pozorovanie má vlastný riadok
+3. Každý typ pozorovania má vlastnú tabuľku
+
+---
+
+---
+
+# Načítání balíků
 
 ```{r packages}
 # Načtěte potřebné balíky
-
+library(tidyverse)
 
 ```
 
 ---
 
-# 🔥 Cvičení na rozehřátí
+# Cvičení na rozehřátí
 
 ## Transpozice tabulky
 
@@ -67,80 +138,58 @@ table4a
 
 **Zkuste problém vyřešit pomocí funkcí `pivot_longer()` a `pivot_wider()`.**
 
-```{r ukol_rozehnrti}
+```{r ukol_rozehrati}
 # 1. Použijte pivot_longer() na transformaci do dlouhého formátu
-
+table4a %>% pivot_longer(-country, names_to = "year")
 
 # 2. Použijte pivot_wider() na transpozici
-
-
+table4a %>% 
+  pivot_longer(-country, names_to = "year") %>%
+  pivot_wider(names_from =  country,
+              values_from = value)
 ```
-
-**Nápověda:**
-
-- První krok: `pivot_longer(-country, names_to = "year")`
-- Druhý krok: `pivot_wider(names_from = country)`
 
 ---
 
-# 🥕 Cvičení A: Psychologie zeleniny
+# Cvičení A: Psychologie zeleniny
 
 Příklad nás zavede do perspektivního pole **psychologie zeleniny**. Data z Guilford et al. (1954) obsahují data o preferencích nad páry zelenin. Čísla jsou podíl voleb zeleniny ve sloupci před zeleninou v řádku.
-
-Tabulku `veg` najdete v balíku `psychTools`.
 
 ## Načtení dat
 
 ```{r ukol_a_nacteni}
-# Načtěte data
-
-
-# Zobrazení dat
-
-
+library(psychotools)
+data(vegetables, package = "psychTools")
+veg |> str()
 ```
 
 ## Přeměna do tidy formátu
 
-**Zadání:** Převeďte tabulku do tidy formátu. Výsledek by měl vypadat takto:
-
-```
-# A tibble: 144 × 3
-   Veg_B    Veg_A     value
-   <chr>    <chr>     <dbl>
- 1 asparagus asparagus  0.5 
- 2 asparagus beans      0.53
- 3 asparagus broccoli   0.58
-   ...
-```
+**Zadání:** Převeďte tabulku do tidy formátu. 
 
 Sloupec `value` obsahuje podíl preferencí Veg_A před Veg_B.
+Originální tabulka je data.frame s názvy řádků. S názvy řádků nemůžeme přímo pracovat. Pokud chceme vytvořit tabulku v tidy formátu musíme jména řádků vložit do “normálního” sloupce
 
 ```{r ukol_a_tidy}
 # KROK 1: Vložení jmen řádků do sloupce
-# S pomocí balíku tibble:
+# S pomocí base R:
+veg$Veg_B <- row.names(veg)
 
-
-# Nebo s pomocí base R:
-
+# Nebo s pomocí balíku tibble:
+veg <- as_tibble(veg, rownames = "Veg_B")
 
 # KROK 2: Transformace do tidy formátu pomocí pivot_longer()
-
+veg %>% pivot_longer(-Veg_B, names_to = "Veg_A")
 
 # KROK 3 (volitelné): Seřazení podle hodnoty
-
+veg %>% pivot_longer(-Veg_B, names_to = "Veg_A") %>% arrange(desc(value))
 
 ```
 
-**Poznámky:**
-
-- Původní tabulka je `data.frame` s názvy řádků
-- Musíme jména řádků vložit do "normálního" sloupce
-- V ukázkovém řešení je použit "negativní výčet" sloupců: `-Veg_B`
 
 ---
 
-# 🌍 Cvičení B: Data z databáze World Bank
+# Cvičení B: Data z databáze World Bank
 
 Jedním z nejfrekventovanějších zdrojů makro dat je bezpochyby databáze WDI, kterou provozuje World Bank.
 
@@ -152,35 +201,12 @@ Jedním z nejfrekventovanějších zdrojů makro dat je bezpochyby databáze WDI
 - **Úmrtnosti** (`SP.DYN.CDRT.IN`)
 - **Čisté migrace** (`SM.POP.NETM`)
 
-```{r ukol_b_nacteni, eval=FALSE}
-# Stažení dat z World Bank API
-library(wbstats)
+Cez API je uz ina funkcia, ktorá vráti tibble
 
-
-
-# Pokud API nefunguje, načtěte ze souboru:
-# load("exdata07/tidyr_wbdata.RData")
+```{r ukol_b_nacteni, eval=TRUE}
+load("tidyr_wbdata.RData")
+wbdata %>% print(n = 5)
 ```
-
-```{r ukol_b_nacteni_backup, echo=FALSE}
-# Pro knit dokumentu - načtení ze souboru
-# load("exdata07/tidyr_wbdata.RData")
-```
-
-## Prohlédnutí struktury
-
-```{r ukol_b_struktura}
-# Vypište prvních 5 řádků
-
-
-```
-
-**Struktura tabulky:**
-
-- `country` a `iso2c` = duplicitní ID pro zemi
-- `date` = rok pozorování (jako character!)
-- `indicatorID` a `indicator` = duplicitní ID proměnné
-- `value` = pozorovaná hodnota
 
 ## Transformace do tidy formátu
 
@@ -197,43 +223,32 @@ library(wbstats)
   ...
 ```
 
-```{r ukol_b_transformace}
+```{r ukol_b_transformace, eval=TRUE}
 # Transformace pomocí pivot_wider()
 # POZOR: Musíte vyřešit problém s duplicitními ID!
 
+wbdata %>% pivot_wider(names_from = indicatorID) # ma rovnaky pocet riadkov ako povodna tab
+
+wbdata %>% pivot_wider(
+  id_cols = c(country, iso2c, date),
+  names_from = indicatorID
+  ) 
+
 
 ```
-
-**Otázka k přemýšlení:**
-
-Zkuste spustit následující kód. Proběhne bez varování, ale výsledek nebude správný. Proč?
-
-```{r ukol_b_chyba, eval=FALSE}
-wbdata %>% 
-  pivot_wider(names_from = indicatorID)
-```
-
-**Nápověda:**
-
-- Problém: duplicitní sloupce `indicatorID` a `indicator`
-- Řešení 1: Vyloučit sloupec `indicator` před transformací
-- Řešení 2: Použít parametr `id_cols = c(country, iso2c, date)`
 
 ---
 
-# 📈 Příklad C: Finanční data z Yahoo Finance
+# Příklad C: Finanční data z Yahoo Finance
 
 Zpracování finančních dat - cen akcií Alphabet Inc. (GOOG) z Yahoo Finance.
 
 ## Načtení dat
 
 ```{r ukol_c_nacteni}
-# Načtěte CSV soubor
+goog <- read_csv('tidyr_GOOG.csv', col_types = 'cnnnnnn')
 
-
-# Zobrazení dat
-
-
+goog %>% str()
 ```
 
 ## Rozdělení sloupce Date
@@ -241,36 +256,31 @@ Zpracování finančních dat - cen akcií Alphabet Inc. (GOOG) z Yahoo Finance.
 **Zadání:** V prvním sloupci najdete datum jako character ve formátu `"YYYY-MM-DD"`. Rozložte sloupec `Date` do numerických sloupců `year`, `month` a `day`.
 
 ```{r ukol_c_separate}
-# Použijte funkci separate()
+goog %>% 
+  separate(Date, 
+           into = c('year', 'month', 'day'), 
+           sep = '-')
 
+goog %>% 
+  separate(Date, 
+           into = c('year', 'month', 'day'), 
+           sep = '-',
+           convert = TRUE)
 
 ```
 
-**Parametry:**
-
-- `sep = "-"` - oddělovač
-- `convert = TRUE` - automatická konverze na správný typ
-
-**Poznámka:** V praxi je lepší:
-
-1. Načíst datum jako typ `Date` (parametr funkce `read_csv`)
-2. Nebo konvertovat: `as.Date()` nebo s pomocí `lubridate`
-3. Exportovat sloupce pomocí `strftime()` nebo funkcí z `lubridate`
-
 ---
 
-# 🌐 Cvičení D: World Population Prospects (2017)
+# Cvičení D: World Population Prospects (2017)
 
 OSN publikuje ve World Population Prospects demografická data pro všechny státy světa a období 1950-2015. Data jsou pro roky dělitelné pěti.
 
 ## Načtení dat
 
-```{r ukol_d_nacteni}
-# Načtěte data
+```{r ukol_d_nacteni, eval = TRUE}
+load("tidyr_wpp_pop.RData")
 
-
-# Zobrazení prvních 5 řádků
-
+pop %>% str()
 
 ```
 
@@ -296,18 +306,18 @@ Proveďte následující transformace:
 
 ### Krok 1: Konverze do tidy formátu
 
-```{r ukol_d_krok1}
-# Transformace pomocí pivot_longer()
-# - Výčet sloupců: NEGATIVNÍ (-c(country_code, name))
-# - Konverze roku na integer: names_transform = list(year = as.integer)
-
+```{r ukol_d_krok1, eval = TRUE}
+pop %>% pivot_longer(
+  cols = -c(country_code, name),
+  names_to = 'year', # defaultna hodnota je name, to je v konflikte e existujucim stlpcom name, vylucenym v cols
+  values_to = 'population',
+  names_transform = list(year = as.integer)
+  # defaultne by boli roky "character"
+  # ako keby: mutate(year = as.integer(year))
+  # names_transform = list(nazov_stlpca = funkcia)
+) 
 
 ```
-
-**Poznámky:**
-
-- Negativní výčet je univerzálnější (připraven na updaty)
-- Konvertujte rok na `integer` pro snadnější práci s daty
 
 ### Krok 2: Konverze implicitních NA na explicitní
 
@@ -315,51 +325,95 @@ Proveďte následující transformace:
 
 ```{r ukol_d_krok2}
 # Použijte funkci complete()
-# complete(country_code, name, year = 1950:2015)
-
-# LEPŠÍ: Použijte placeholder pro univerzálnější řešení
-
+pop %>% 
+  pivot_longer(
+    cols = -c(country_code, name),
+    names_to = 'year', 
+    values_to = 'population',
+    names_transform = list(year = as.integer)
+    ) %>%
+  complete(country_code, name, year = 1950:2015)
 
 ```
+
+Tady přichází první problém. Tabulka pop neobsahuje všechny roky, ale jen ty, dělitelné pěti. Pro sloupec year je tedy nutné zadat všechny hodnoty, kterých může nebývat. V našem případě interval od 1950 do 2015. Obecně však není dobré zadávat parametry “natvrdo”. Deklarace 1950:2015 nás totiž prakticky zbavuje výhody negativního výču transformovaných sloupců, porotže s každým updatem tabulky by bylo nutné tento parametr měnit.
+**LEPŠÍ: Použít placeholder pro univerzálnější řešení**
+```{r eval = TRUE}
+pop %>% 
+  pivot_longer(
+    cols = -c(country_code, name),
+    names_to = 'year', 
+    values_to = 'population',
+    names_transform = list(year = as.integer)
+    ) %>%
+  complete(country_code, name, year = min(.$year): max(.$year))
+```
+Je rešení správné? Není. Tabulka pop obsahuje údaje pro N=241 zemí a pro každou z nich chceme údaj pro každý rok mezi lety 1950 a 2015 (T=66). Výsledná tabulka by tedy měla mít N×T=15.906 řádků. Tabulka v předchozí řešení jich ale má mnohem víc! Problém je v tom, že ID pro průřezovou jednotku je vlastně duplicitní. Země je identifikována jak sloupcem name, tak sloupcem country_code a complete se snaží dosadit hodnoty ke všem kombinacím hodnot z těchto sloupců – výsledná tabulka tedy má N×N×T=3.833.346 řádků a hlavně nesmyslný obsah.
+
+Možným řešením tohoto problému je využití funkce nesting(). Ta řekne funkci complete(), aby zacházela se dvěma sloupci, jako by to byl jeden:
 
 **POZOR: Problém s duplicitním ID!**
 
-Země je identifikována jak `name`, tak `country_code`. Musíme použít `nesting()`:
-
-```{r ukol_d_krok2_fix}
-# Správné řešení s nesting()
-
-
-```
-
-**Vysvětlení:**
+Země je identifikována jak `name`, tak `country_code`. Musíme použít `nesting()`
 
 - Bez `nesting()`: $N \times N \times T = 3{,}833{,}346$ řádků ❌
 - S `nesting()`: $N \times T = 15{,}906$ řádků ✅
 
+```{r ukol_d_krok2_fix}
+pop %>% 
+  pivot_longer(
+    cols = -c(country_code, name),
+    names_to = 'year', 
+    values_to = 'population',
+    names_transform = list(year = as.integer)
+    ) %>%
+  complete(nesting(country_code, name), year = min(.$year): max(.$year))
+
+```
+
+
 ### Krok 3: Doplnění chybějících hodnot
 
 **Zadání:** Doplňte chybějící hodnoty populace poslední pozorovanou hodnotou (forward fill).
+Nejsnazší cestou k výsledku je použití funkce fill(). Ta ovšem umí nahradit pouze explicitní chybějící hodnoty a proto je bylo nutné nejprve vytvořit z těch implicitních.
 
 ```{r ukol_d_krok3}
-# Použijte funkci fill()
-# .direction = "down" - doplnění z předchozích řádků
-
+pop %>% 
+  pivot_longer(
+    cols = -c(country_code, name),
+    names_to = 'year', 
+    values_to = 'population',
+    names_transform = list(year = as.integer)
+    ) %>%
+  complete(nesting(country_code, name), year = min(.$year): max(.$year)) %>%
+  fill(population, .direction = "down")
 
 ```
 
 **POZOR: fill() doplní hodnoty "dolů"**
+Jsoou zde zjevné dva problémy. První je, že funkce fill() neví, zda dělá něco, co dává smysl. V tomto případě vesele doplní pro Albánii v roce 1950 (chybějící pozorování) hodnotu pro Afghánistán z roku 2015. Prostě to byl předchozí řádek. S tím souvisí i druhý problém. Musíte se postarat o to, aby byly řádky ve správném pořadí.
 
 Musíme zajistit:
 
 1. Správné pořadí řádků (seřazení podle roku)
 2. Skupinování podle země (aby se nedoplňovaly hodnoty mezi zeměmi)
 
-**Správné, protektované řešení:**
 
 ```{r ukol_d_krok3_fix}
 # Kompletní řešení s group_by() a arrange()
 
+pop %>% 
+  pivot_longer(
+    cols = -c(country_code, name),
+    names_to = 'year', 
+    values_to = 'population',
+    names_transform = list(year = as.integer)
+    ) %>%
+  complete(nesting(country_code, name), year = min(.$year): max(.$year)) %>%
+  group_by(country_code) %>%
+  arrange(year, .by_group = TRUE) %>%
+  fill(population, .direction = "down") %>%
+  ungroup()
 
 ```
 
@@ -372,7 +426,7 @@ Musíme zajistit:
 
 ---
 
-# 📝 Cvičení E: Data z Google Forms
+# Cvičení E: Data z Google Forms
 
 Google Forms je platforma pro tvorbu jednoduchých dotazníků. Odpovědi jsou ukládány do tabulek ve formátu CSV.
 
@@ -387,11 +441,10 @@ Dotazník obsahuje tři typy otázek:
 ## Načtení dat
 
 ```{r ukol_e_nacteni}
-# Načtěte CSV soubor
 
+gforms  <- read_csv("tidyr_GoogleForms.csv")
 
-# Zobrazení dat
-
+gforms %>% print(n = 5)
 
 ```
 
@@ -403,11 +456,21 @@ Dotazník obsahuje tři typy otázek:
 
 ```{r ukol_e_rename}
 # Spôsob 1: Pomocí names()
-
+names(gforms)[-1] <- c("q1","q2","q3a","q3b","q3c")
+gforms %>% head(2)
 
 # Spôsob 2: Pomocí rename() z dplyr
 
-
+gforms  <- read_csv("tidyr_GoogleForms.csv")
+gforms <- gforms %>% 
+    rename(
+        q1 = `Choose one of following (radiobutton):`,
+        q2 = `Choose multiple answers (checkbox):`,
+        q3a = `Radiobutton grid: [Row 1]`,
+        q3b = `Radiobutton grid: [Row 2]`,
+        q3c = `Radiobutton grid: [Row 3]`
+    )
+gforms %>% head(2)
 ```
 
 ## Úkol 2: Transformace sloupce q2
@@ -416,62 +479,78 @@ Dotazník obsahuje tři typy otázek:
 
 **POZOR:** Variantu 4 si nezvolil nikdo, ale přesto má mít svůj sloupec!
 
-**Nápověda:** `separate_rows()`
-
 ### Pomocný krok: Přidání ID
+ Pro lepší pochopení toho, jak separate_rows() funguje přidáme nejprve do tabulky sloupec ID s identifikátorem respondenta (využijeme k tomu funkce z balíku dplyr)
 
 ```{r ukol_e_id}
-# Přidejte sloupec ID pro identifikaci respondenta
+gforms <- gforms %>% 
+  mutate(ID = row_number()) %>%
+  relocate(ID, everything())
 
-
+gforms %>% head(2)
 ```
 
-### Řešení 1: Jednodušší (ale ne úplné)
-
-```{r ukol_e_reseni1}
-# 1. Rozdělení buněk pomocí separate_rows()
-
-
-# 2. Přidání pomocného sloupce s TRUE
-
-
-# 3. Použití pivot_wider()
-
-
-```
-
-**Problém:** Stále by bylo nutné:
-
-- Přejmenovat sloupce `Option 1`, `Option 2`, `Option 3`
-- Manuálně doplnit sloupec pro `Option 4`
-
-### Řešení 2: Kompletní (s faktorem)
+### Řešení (s faktorem):
 
 ```{r ukol_e_reseni2}
 # Klíčová změna: konverze q2 na faktor s definovanými úrovněmi
 
+gforms %>% 
+  # Rozdelenie viacnásobných odpovedí na samostatné riadky
+  separate_longer_delim(q2, delim = ";")
 
-# separate_rows()
+gforms %>% 
+  separate_longer_delim(q2, delim = ";") %>% 
+  # konverzia na faktor so všetkými možnostami, (aj Option 4)
+  mutate(q2 =  factor(q2, levels =  c("Option 1", "Option 2", 
+                                     "Option 3", "Option 4")))
 
+gforms %>% 
+  separate_longer_delim(q2, delim = ";") %>% 
+  mutate(q2 =  factor(q2, levels =  c("Option 1", "Option 2", 
+                                     "Option 3", "Option 4"))) %>%
+  mutate(value = TRUE)
 
-# Pomocný sloupec
-
-
-# pivot_wider() s names_expand = TRUE
-
+gforms %>% 
+  separate_longer_delim(q2, delim = ";") %>% 
+  mutate(q2 =  factor(q2, levels =  c("Option 1", "Option 2", 
+                                     "Option 3", "Option 4"))) %>%
+  mutate(value = TRUE) %>%
+  pivot_wider(
+    names_from = q2,
+    values_from = value,
+    names_prefix = "q2_",
+    names_expand = TRUE,      # Vytvorí stĺpec aj pre Option 4!
+    values_fill = FALSE       # Nevyplnené hodnoty = FALSE
+  )
 
 ```
 
-**Parametry pivot_wider():**
+**RIEŠENIE PROBLÉMU S NA:**
 
-- `names_expand = TRUE` - vytvoří sloupec i pro nepozorovaný level
-- `values_fill = FALSE` - doplní FALSE místo NA
+Ak sa po `separate_longer_delim()` objavia NA hodnoty (kvôli prázdnym stringom alebo extra bodkočiarkam), pridajte `filter()`:
+
+```{r ukol_e_reseni2_fix, eval=FALSE}
+gforms %>% 
+  separate_longer_delim(q2, delim = ";") %>% 
+  filter(!is.na(q2) & q2 != "") %>%  # Odstráni prázdne hodnoty a NA
+  mutate(q2 =  factor(q2, levels =  c("Option 1", "Option 2", 
+                                     "Option 3", "Option 4"))) %>%
+  mutate(value = TRUE) %>%
+  pivot_wider(
+    names_from = q2,
+    values_from = value,
+    names_prefix = "q2_",
+    names_expand = TRUE,
+    values_fill = FALSE
+  )
+```
 
 **POZNÁMKA:** Toto řešení vyžaduje novější verzi tidyr (≥ 1.2.0)!
 
 ---
 
-# 📊 Přehled funkcí tidyr
+# Přehled funkcí tidyr
 
 ## Wide ↔ Long transformace
 
@@ -523,7 +602,7 @@ unnest(data, cols)
 
 ---
 
-# 💡 Důležité poznámky
+# Důležité poznámky
 
 ## Tidy data pravidla
 
@@ -566,29 +645,226 @@ data %>%
   fill(value) %>%
   ungroup()
 ```
+---
+
+# Dodatočné príklady z učebnice
+
+## Vytvorenie testovacích dát
+
+**Užitočné funkcie pre generovanie dát:**
+
+```{r priklad_generovanie}
+# rep() - opakovanie hodnôt
+# runif() - náhodné čísla z uniformného rozdelenia
+
+tibble(
+  area = c(rep("Kostelec", 3), rep("Valtrovice", 3)),
+  year = rep(c(2001:2003), 2),
+  adult_population = c(301, 305, 295, 656, 650, 660),
+  unemployment_rate = runif(6, min = 6, max = 10) %>% round(digits = 1)
+)
+```
 
 ---
 
-# 🎯 Checklist
+## pivot_longer() s pridaním ID
 
-- [ ] Rozumím rozdílu mezi wide a long formátem?
-- [ ] Vím, kdy použít `pivot_longer()` a `pivot_wider()`?
-- [ ] Dokážu pracovat s `complete()` a `nesting()`?
-- [ ] Chápu rizika použití `fill()` bez správného seskupení?
-- [ ] Vím, jak pracovat s duplicitními ID sloupci?
-- [ ] Umím použít `separate_rows()` pro rozdělení buněk?
+**Ak potrebuješ zachovať identifikátor riadku:**
 
----
-
-# 🔗 Užitečné odkazy
-
-- [tidyr cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf)
-- [R for Data Science - Tidy data](https://r4ds.had.co.nz/tidy-data.html)
-- [tidyr documentation](https://tidyr.tidyverse.org/)
+```{r priklad_id}
+# Pridanie ID pred pivotovaním
+table4a %>% 
+  mutate(id = row_number()) %>%
+  pivot_longer(
+    -c(country, id), 
+    names_to = "roky",
+    values_to = "hodnoty"
+  )
+```
 
 ---
 
-<div style="text-align: center; margin-top: 50px; padding: 20px; background-color: #f0f0f0; border-radius: 10px;">
-**Vytvorené pre:** MPE_AVED, Týždeň 7, ECON MUNI  
-**Dátum:** `r Sys.Date()`
-</div>
+## Komplexný príklad: pivot_wider() → pivot_longer()
+
+**Transformácia tam a späť s pokročilými parametrami:**
+
+```{r priklad_komplexny}
+# KROK 1: Vytvorenie širokej tabuľky s viacnásobnými názvami
+table2 %>% 
+  pivot_wider(
+    names_from = c(type, year),  # Kombinácia type_year
+    values_from = count
+  )
+
+# KROK 2: Späť na dlhý formát s rozdelením názvov
+table2 %>% 
+  pivot_wider(
+    names_from = c(type, year),
+    values_from = count
+  ) %>%
+  pivot_longer(
+    -country, 
+    names_to = c("type", "year"),
+    names_sep = "_",                           # Oddeľovač v názvoch
+    names_transform = list(year = as.integer), # Konverzia year na integer
+    names_ptypes = list(type = character()),   # Typ pre type
+    values_to = "count"
+  )
+
+# SPRÁVNE riešenie - použitie id_cols
+table2 %>% 
+  pivot_wider(
+    id_cols = c(country, year),  # ID stĺpce
+    names_from = type, 
+    values_from = count
+  )
+```
+
+**Poznámka:** Parameter `id_cols` je kľúčový pre správnu identifikáciu pozorovania!
+
+---
+
+## Podobnosť reťazcov (string distance)
+
+**Užitočné pre hľadanie duplicít v menách:**
+
+```{r priklad_stringdist}
+library(stringdist)
+
+surnames <- c("Nováková", "Novaková", "Nosálová", "Novakowa")
+
+# Levenshteinova vzdialenosť (počet zmien potrebných na transformáciu)
+dist_matrix <- stringdistmatrix(surnames, method = "lv")
+dist_matrix %>% as.matrix() %>% print()
+
+# Transformácia do tidy formátu
+dist_matrix %>%
+  as.matrix() %>%
+  as_tibble(rownames = "stringA") %>%  # tibble nemá názvy riadkov
+  pivot_longer(-stringA, names_to = "stringB", values_to = "distance")
+```
+
+**Metódy výpočtu vzdialenosti:**
+
+- `"lv"` - Levenshtein (počet editácií)
+- `"jw"` - Jaro-Winkler (váhovaná podobnosť)
+- `"cosine"` - Kosinusová podobnosť
+
+---
+
+## Vnorené štruktúry: nest() a unnest()
+
+**Zoskupenie dát do vnorených tibble:**
+
+```{r priklad_nest}
+load("tidyr_population_world.Rdata")
+# Príklad s populačnými dátami
+population_world_nested <- population_world %>% 
+  nest(data = -observation)  # Všetko okrem 'observation' sa vnoří
+
+# Zobrazenie vnorenej štruktúry
+population_world_nested
+population_world_nested$data  # Prístup k vnoreným dátam
+
+# Rozbalenie späť
+population_world_nested %>% unnest(data)
+```
+
+**Použitie:**
+
+- Aplikácia funkcií na každú skupinu (napr. regresia pre každú krajinu)
+- Uloženie komplexných výsledkov v jednom riadku
+
+---
+
+## Spojenie stĺpcov: unite()
+
+**Opak funkcie separate():**
+
+```{r priklad_unite}
+table5
+
+# Spojenie stĺpcov century a year
+table5 %>% 
+  unite(year, century, year, sep = "")
+
+# Parameter remove = FALSE zachová pôvodné stĺpce
+table5 %>% 
+  unite(full_year, century, year, sep = "", remove = FALSE)
+```
+
+---
+
+## Práca s explicitnými NA hodnotami
+
+### replace_na() - Nahradenie NA konkrétnou hodnotou
+
+```{r priklad_replace_na}
+# Príklad s explicitnými NA
+table1_expl <- table1
+table1_expl[table1_expl$country == "Brazil" & 
+            table1_expl$year == 1999, 
+            c("cases", "population")] <- NA
+
+# Nahradenie NA konkrétnymi hodnotami
+table1_expl %>%
+  replace_na(replace = list(cases = 0, population = 1000000))
+```
+
+### fill() - Vyplnenie NA predchádzajúcou/nasledujúcou hodnotou
+
+```{r priklad_fill_grouped}
+# POZOR: fill() funguje v rámci skupín!
+table1_expl %>% 
+  group_by(country) %>%  # Dôležité - aby sa nemiešali krajiny
+  fill(cases, .direction = "down")  # Vyplní NA hodnotou zhora
+```
+
+**Smery vyplnenia:**
+
+- `"down"` - zhora nadol (default)
+- `"up"` - zdola nahor
+- `"downup"` - najprv dole, potom hore
+- `"updown"` - najprv hore, potom dole
+
+---
+
+# Zhrnutie kľúčových rozdielov
+
+## separate() vs. separate_wider_*() vs. separate_longer_*()
+
+```r
+# separate() - pôvodná funkcia (stále funguje)
+separate(data, col, into = c("col1", "col2"), sep = "-")
+
+# separate_wider_delim() - nová verzia (explicitnejšia)
+separate_wider_delim(data, col, delim = "-", names = c("col1", "col2"))
+
+# separate_longer_delim() - rozdelenie do viacerých riadkov
+separate_longer_delim(data, col, delim = ";")
+```
+
+## pivot_wider() - dôležité parametre
+
+```r
+pivot_wider(
+  data,
+  id_cols = c(...),        # Ktoré stĺpce identifikujú pozorovanie?
+  names_from = col,        # Odkiaľ vezmeme názvy nových stĺpcov?
+  values_from = col,       # Odkiaľ vezmeme hodnoty?
+  names_expand = TRUE,     # Vytvoriť stĺpce aj pre chýbajúce levely faktoru?
+  values_fill = 0          # Čím vyplniť chýbajúce hodnoty?
+)
+```
+
+## complete() - kedy použiť nesting()
+
+```r
+# ❌ Bez nesting() - vytvorí všetky kombinácie (aj nezmyselné)
+complete(country_code, name, year)  # N × N × T kombinácií
+
+# ✅ S nesting() - zachová existujúce páry
+complete(nesting(country_code, name), year)  # N × T kombinácií
+```
+
+---
