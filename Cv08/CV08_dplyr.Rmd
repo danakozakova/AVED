@@ -36,7 +36,7 @@ Načtěte si data o sportovcích, kteří se zúčastnili Olympijských her v Lo
 
 ```{r ukol_rozehnuti_data}
 oly12 <- VGAMdata::oly12 %>% as_tibble()
-oly12
+oly12 %>% print(n = 5)
 ```
 Nejprve data vyčistíme. Vyřadíme všechny sportovce, kteří nastupují ve více sportech. (To poznáme tak, že sloupec `Sport` obsahuje znak ",".)
 Také vyřadíme ty, u kterých chybí údaj o výšce, váze, nebo pohlaví.
@@ -44,7 +44,7 @@ Také vyřadíme ty, u kterých chybí údaj o výšce, váze, nebo pohlaví.
 oly12 <- oly12 %>% 
   filter(!str_detect(Sport, ',')) %>%
   drop_na(Height, Weight, Sex)
-oly12
+oly12 %>% print(n = 5)
 ```
 
 Nyní do tabulky doplňte nový sloupec (`bmi`) s BMI (`bmi = Weight / (Height)^2`) a najděte muže s nejnižším BMI.
@@ -71,7 +71,7 @@ oly12 %>%
   dplyr::summarise(
     meanBMI = mean(bmi, na.rm = TRUE)
   ) %>%
-  arrange(meanBMI)
+  arrange(meanBMI) %>% print(n = 5)
 ```
 
 Kolik bych vážil, kdybych byl na půměru... Dopočítejte svoji očekávanou váhu v každém sportu při své skutečné výšce a pohlaví.
@@ -84,7 +84,7 @@ oly12 %>%
   ) %>%
   pivot_wider(names_from = Sex, values_from = meanBMI) %>%
   mutate(myProjectedWeight = F*(1.6^2)) %>%
-  arrange(-myProjectedWeight)
+  arrange(-myProjectedWeight) %>% print(n = 5)
 ```
 
 
@@ -122,7 +122,7 @@ domy_priv <- domy %>%
   mutate(LIDAMSIDOB = as.character(LIDAMSIDOB)) %>%
   left_join(privatizace,by = c('LIDAMSIDOB' ='IDOB'))  %>%
   select(LIDAMSIDOB, year, everything())
-domy_priv
+domy_priv %>% print(n = 5)
 ```
 
 ## Úkol 1.2: Sloupec pro restituce, privatizaci
@@ -135,7 +135,7 @@ V druhém kroku vytvoříme ve sloučené tabulce proměnnou `status`, která bu
 
 ```{r}
 domy_priv %>%
-  select(LIDAMSIDOB, kod91_vlast, OBDVD, jvlast_r01, everything())
+  select(LIDAMSIDOB, kod91_vlast, OBDVD, jvlast_r01, everything()) %>% print(n = 5)
 
 domy_priv %>%
   mutate(
@@ -145,7 +145,7 @@ domy_priv %>%
       TRUE ~ 'other'
     ) 
   ) %>%
-  select(status, everything())
+  select(status, everything()) %>% print(n = 5)
 
 domy_priv %>%
   mutate(
@@ -167,7 +167,7 @@ Práce s otevřenými daty z Českého statistického úřadu.
 
 ```{r ukol_2_nacteni}
 sldb <- read_csv('SLDB_OBYVATELSTVO_2011.CSV', locale = locale(encoding = 'latin2'))
-sldb
+sldb %>% print(n = 5)
 
 ```
 
@@ -179,7 +179,7 @@ sldb %>%
 
 sldb <- sldb %>%
   filter(typuz_naz == 'obec')
-sldb
+sldb %>% print(n = 5)
 ```
 
 ## Úkol 2.2: Nezaměstnanost
@@ -204,7 +204,7 @@ Pro tento úkol budete potřebovat tabulku přiřazující obce do krajů. Tu na
 ```{r ukol_2_3}
 
 load("tabulka_obci.RData")
-tabulka_obci
+tabulka_obci %>% print(n = 5)
 
 sldb %>% 
   mutate(
@@ -223,7 +223,7 @@ sldb %>%
     min = min(u_rate, na.rm = TRUE),
     mean = mean(u_rate, na.rm = TRUE),
     max = max(u_rate, na.rm = TRUE)
-  )
+  ) %>% print(n = 5)
 ```
 
 ---
@@ -246,7 +246,7 @@ WIID je sbírků údajů o nerovnosti sesbíraných z mnoha různých zdrojů. M
 ```{r ukol_3_1}
 wiid <- wiid %>% 
     select(Country, Year, Gini, Quality)
-wiid %>% print()
+wiid %>% print(n = 5)
 
 
 ```
@@ -303,7 +303,7 @@ Práce s chybějícími hodnotami v datech.
 
 ```{r ukol_5_nacteni}
 load('dplyr_Gasoline.RData')
-Gasoline
+Gasoline %>% print(n = 5)
 
 ```
 
@@ -314,7 +314,7 @@ Nahradit NA.Pro nahrazení použijte průměrnou hodnotu pro zemi.
 
 Gasoline %>%
   pivot_longer(-c(country, year), names_to = 'variable') %>%
-  arrange(country, year)
+  arrange(country, year) %>% print(n = 5)
 
 Gasoline %>%
   pivot_longer(-c(country, year), names_to = 'variable') %>%
@@ -323,7 +323,7 @@ Gasoline %>%
   mutate(
     value = ifelse(is.na(value), mean(value, na.rm = TRUE), value)
   ) %>%
-  ungroup()
+  ungroup() %>% print(n = 5)
 
 Gasoline %>%
   pivot_longer(-c(country, year), names_to = 'variable') %>%
@@ -401,7 +401,7 @@ Gasoline %>%
 ```
 ---
 
-# 📝 Přehled funkcí dplyr
+# Přehled funkcí dplyr
 
 ## Základní transformace
 
@@ -463,7 +463,7 @@ anti_join(x, y, by = "key")
 
 ---
 
-# 💡 Důležité poznámky
+# Důležité poznámky
 
 ## Pipe operátor %>%
 
@@ -520,24 +520,3 @@ data %>%
   group_by(group) %>%
   mutate(mean_val = mean(value))  # Stejný počet řádků jako původní data
 ```
-
----
-
-# 🎯 Checklist
-
-- [ ] Rozumím rozdílu mezi `select()` a `filter()`?
-- [ ] Vím, kdy použít `mutate()` a `summarise()`?
-- [ ] Dokážu efektivně používat pipe operátor `%>%`?
-- [ ] Chápu rozdíly mezi různými typy joinů?
-- [ ] Vím, jak pracovat s chybějícími hodnotami?
-- [ ] Umím kombinovat více dplyr operací dohromady?
-
----
-
-# 🔗 Užitečné odkazy
-
-- [dplyr cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/data-transformation.pdf)
-- [R for Data Science - Data transformation](https://r4ds.had.co.nz/transform.html)
-- [dplyr documentation](https://dplyr.tidyverse.org/)
-
-
