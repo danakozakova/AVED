@@ -8,7 +8,7 @@ output:
     toc: true
     toc_float: true
     toc_depth: 3
-    number_sections: true
+    number_sections: false
     theme: cosmo
     highlight: tango
     code_folding: show
@@ -21,32 +21,20 @@ knitr::opts_chunk$set(
   message = FALSE,
   comment = "#>",
   fig.width = 8,
-  fig.height = 6
+  fig.height = 4
 )
 ```
 
-# 📚 Úvod
-
-V tomto cvičení si procvičíte používání základních nástrojů z balíku **ggplot2**, které znáte z přednášky:
-
-- **`ggplot()`** - inicializace grafu
-- **`aes()`** - mapování proměnných na estetické vlastnosti
-- **Geomy** - `geom_point()`, `geom_line()`, `geom_bar()`, `geom_histogram()` atd.
-- **Facety** - `facet_wrap()`, `facet_grid()`
-- **Témata** - `theme_*()` a další nastavení vzhledu
-- **Škály** - `scale_*()` funkce pro úpravu os a barev
-
-# 📦 Načítání balíků
+# Načítání balíků
 
 ```{r packages}
-# Načtěte potřebné balíky
 library(tidyverse)
-
+library(tibble)
 ```
 
 ---
 
-# 🔥 Cvičení na rozehřátí: Úmrtí řidičů v UK a nošení pásů
+# Cvičení na rozehřátí: Úmrtí řidičů v UK a nošení pásů
 
 Analyzujte data o úmrtích řidičů ve Velké Británii v souvislosti se zavedením povinného používání bezpečnostních pásů.
 
@@ -57,110 +45,154 @@ Analyzujte data o úmrtích řidičů ve Velké Británii v souvislosti se zaved
 seatbelts <- datasets::Seatbelts %>% 
   as.matrix()
 
-seatbelts <- data.frame(as.matrix(seatbelts), year=time(seatbelts), month = cycle(seatbelts)) %>% 
-    as_tibble() %>% 
-    mutate(
-        year = as.character(year) %>% str_extract("^\\d{4}"),
-        month = ifelse(month < 10, str_c("0",month), as.character(month)),
-        date = str_c(year,"-",month,"-01") %>% as.Date()
-    )
-# Prozkoumejte strukturu dat
+seatbelts %>% 
+  glimpse()
 
+seatbelts %>% data.frame(
+  as.matrix(.),
+  year = time(.),
+  month = cycle(.)
+) %>% 
+  select(year, month, everything()) %>% 
+  as_tibble() %>%
+  print(n = 5)
 
+seatbelts %>% data.frame(
+  as.matrix(.),
+  year = time(.),
+  month = cycle(.)
+) %>% 
+  as_tibble() %>%
+  mutate(
+    year = as.character(trunc(year)), 
+    # alebo: year = as.character(year) %>% str_extract("^\\d{4}"),
+    month = ifelse(month < 10, str_c('0', month), as.character(month))
+  ) %>% 
+  select(year, month, everything()) %>% 
+  print(n = 5)
+
+seatbelts <- seatbelts %>% data.frame(
+  as.matrix(.),
+  year = time(.),
+  month = cycle(.)
+) %>% 
+  as_tibble() %>%
+  mutate(
+    year = as.character(trunc(year)), 
+    # alebo: year = as.character(year) %>% str_extract("^\\d{4}"),
+    month = ifelse(month < 10, str_c('0', month), as.character(month)),
+    date = str_c(year, "-", month, '-01') %>% as.Date()
+  ) 
+
+seatbelts %>% 
+  select(year, month, date, everything()) %>% 
+  print(n = 5)
 ```
 
 ## Základní vizualizace
+Časová řada
 
 ```{r rozehnuti_vizualizace}
-# Vytvořte základní bodový graf
-
-seatbelts |> 
-  ggplot(aes(x = date, y = drivers)) +
-    geom_line()
-
+seatbelts %>%
+  ggplot(
+    aes(x = date, y = drivers)
+  ) +
+  geom_line()
 ```
 
-## Malé rozšíření...
-
+2. Barevně odlište období před/po uvedení zákona v platnost (proměnná `law`)
 ```{r rozehnuti_male_rozsireni}
-# Přidejte další estetické vlastnosti (barva, tvar bodů)
-seatbelts |>
-  mutate(
-    law = law > 0
-  ) |> 
+seatbelts$law %>% unique()
+
+seatbelts %>%
   ggplot(
-    aes(x = date, y = drivers, color = law)
-    ) +
+    aes(x = date, y = drivers, color = as.character(law) )
+  ) +
   geom_line()
 
 ```
+Upravte jméno proměnné a hodnoty v legendě
 
-## Zajímavější rozšíření...
-nejaka rozumna transformacia hodnot do farieb
-
-```{r rozehnuti_zajimave_rozsireni}
-# Přidejte trendy, popisky, vylepšete vzhled
-# skalovanie hodnoty do farieb - colorbrewer2.org
-seatbelts |>
-  mutate(
-    law = law > 0
-  ) |> 
+- 'scale_color_discrete()' slouží k úpravě legendy a barev pro diskrétní (kategorickou) proměnnou, která je namapována na `color`.
+```{r}
+Sys.setlocale("LC_ALL", "Czech")
+seatbelts %>%
   ggplot(
-    aes(x = date, y = drivers, color = law)
-    ) +
-  geom_line() +
-  scale_color_brewer(
-    "Plati zakon o povinnem \nnoseni pasu?",
-    palette = "Dark2",
-    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
-  )
-
-seatbelts |>
-  mutate(
-    law = law > 0
-  ) |> 
-  ggplot(
-    aes(x = date, y = drivers, color = law)
-    ) +
-  geom_line() +
-  geom_point() +
-  scale_color_brewer(
-    "Plati zakon o povinnem \nnoseni pasu?",
-    palette = "Dark2",
-    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
-  )
-
-seatbelts |>
-  mutate(
-    law = law > 0
-  ) |> 
-  ggplot(
-    aes(x = date, y = drivers, color = law)
-    ) +
-  geom_line() +
-  geom_point() +
-  annotate( # vykreslenie hranic je podla dat, nie podla annotate
-    "rect",
-    ymin = -Inf,
-    ymax = Inf,
-    xmax = Inf,
-    xmin = as.Date("1983-01-31")
+    aes(x = date, y = drivers, color = as.character(law) )
   ) +
-  scale_color_brewer(
-    "Plati zakon o povinnem \nnoseni pasu?",
-    palette = "Dark2",
-    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+  geom_line() +
+  scale_color_discrete(
+    name = 'Zákon o pásech', # nadpis legendy
+    breaks = c(0, 1), # hodnoty na zobrazenie
   )
+```
+- 'scale_color_brewer()'  používá předdefinované barevné palety od ColorBrewer.
+```{r}
+seatbelts |>
+   mutate(
+     law = law > 0 # transformace na logicku
+   ) |> 
+   ggplot(
+     aes(x = date, y = drivers, color = law)
+     ) +
+   geom_line() +
+   scale_color_brewer(
+     "Plati zakon o povinnem \nnoseni pasu?",
+     palette = "Dark2",
+     labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+   )
 
+ seatbelts |>
+   mutate(
+     law = law > 0
+   ) |> 
+   ggplot(
+     aes(x = date, y = drivers, color = law)
+     ) +
+   geom_line() +
+   geom_point() +
+   scale_color_brewer(
+     "Plati zakon o povinnem \nnoseni pasu?",
+     palette = "Dark2",
+     labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+   )
+
+```
+## Malé rozšírenie
+```{r}
+  seatbelts |>
+   mutate(
+     law = law > 0
+   ) |> 
+   ggplot(
+     aes(x = date, y = drivers, color = law)
+     ) +
+   geom_line() +
+   geom_point() +
+   annotate( # vykreslenie hranic je podla dat, nie podla annotate
+     "rect",
+     ymin = -Inf,
+     ymax = Inf,
+     xmax = Inf,
+     xmin = as.Date("1983-01-31")
+   ) +
+   scale_color_brewer(
+     "Plati zakon o povinnem \nnoseni pasu?",
+     palette = "Dark2",
+     labels = c("TRUE" = "Ano", "FALSE" = "Ne")
+   )
+```
+
+```{r}
 # zmena poradia prvkov a ciastocna priehladnost
 seatbelts |>
   mutate(
     law = law > 0
-  ) |> 
+  ) |>
   ggplot(
     aes(x = date, y = drivers, color = law)
     ) +
-  annotate( 
+  annotate(
     "rect",
     ymin = -Inf,
     ymax = Inf,
@@ -175,16 +207,23 @@ seatbelts |>
     palette = "Dark2",
     labels = c("TRUE" = "Ano", "FALSE" = "Ne")
   )
+```
 
+## Zajímavější rozšíření...
+Oblíbenou identifikační strategií je tzv. regression discontinuity design (RDD), který používá skokovou změnu v momentu (místě,…) intervence pro identifikaci jejího kauzálního efektu. Zkuste nakreslit obrázek, který tuto změnu ukáže:
+
+```{r}
+# Přidejte trendy, popisky, vylepšete vzhled
+# skalovanie hodnoty do farieb - colorbrewer2.org
 # smooth
 seatbelts |>
   mutate(
     law = law > 0
-  ) |> 
+  ) |>
   ggplot(
     aes(x = date, y = drivers, color = law)
     ) +
-  annotate( 
+  annotate(
     "rect",
     ymin = -Inf,
     ymax = Inf,
@@ -200,16 +239,16 @@ seatbelts |>
     palette = "Dark2",
     labels = c("TRUE" = "Ano", "FALSE" = "Ne")
   )
-
+ 
 # odstranenie farby, ale namiesto toho group
 seatbelts |>
   mutate(
     law = law > 0
-  ) |> 
+  ) |>
   ggplot(
     aes(x = date, y = drivers, group = law)
     ) +
-  annotate( 
+  annotate(
     "rect",
     ymin = -Inf,
     ymax = Inf,
@@ -219,53 +258,52 @@ seatbelts |>
   ) +
   geom_line() +
   geom_point() +
-  geom_smooth() +
-  scale_color_brewer(
-    "Plati zakon o povinnem \nnoseni pasu?",
-    palette = "Dark2",
-    labels = c("TRUE" = "Ano", "FALSE" = "Ne")
-  )
-
+  geom_smooth()
+  
 ```
 
 ---
 
-# 💪 Cvičení A: Ve zdravém těle...
+# Cvičení A: Ve zdravém těle...
 
 Vizualizace dat o zdraví a fyzické kondici.
 
 ## Načtení dat
 
 ```{r ukol_a_nacteni}
-# Načtěte data
 oly12 <- VGAMdata::oly12 %>%
   as_tibble()
 
-# Zobrazení prvních řádků
 print(oly12)
+```
+Z tabulky oly12 vytvoříme tabulku s průměrnou váhou a výškou pro skupiny vymezené sportem a pohlavím:
 
+```{r}
+oly12_stats <- oly12 %>% 
+    mutate(
+        Sport = str_extract(Sport, "[:alnum:]*")
+    ) %>% 
+    group_by(Sex,Sport) %>% 
+    summarise(
+        Height = mean(Height, na.rm = TRUE),
+        Weight = mean(Weight, na.rm = TRUE)
+    ) %>% 
+    ungroup() %>% 
+    drop_na() 
 ```
 
 ## Úkol A.1: Explorativní vizualizace
-
-```{r ukol_a_1}
-# Vytvořte základní grafy pro pochopení dat
+```{r}
 oly12 |> 
   ggplot(
     aes(x = Height, y = Weight)
   ) + 
   geom_point()
 # prilis vela bodov, vola sa to overplotting
+```
 
-
+```{r}
 # pohlavie
-oly12 |> 
-  arrange(Sex) |> 
-  ggplot(
-    aes(x = Height, y = Weight, color = Sex)
-  ) + 
-  geom_point()
-
 # priehladnost bodov
 oly12 |> 
   arrange(Sex) |> 
@@ -276,6 +314,9 @@ oly12 |>
     alpha = 0.1
   )
 
+```
+
+```{r}
 # pridam geom_smooth
 oly12 |> 
   arrange(Sex) |> 
@@ -288,6 +329,11 @@ oly12 |>
   ) +
   geom_smooth()
 
+```
+Tato vizualizace naznačuje, že v datech jsou dvě vzájemně posunutá mračna – ženy a muži. Úplně jasno o vztahu ale nemáme, kvůli obrovskému overplottingu.
+
+V tomto případě může pomoci něco jako vícerozměrný histogram – např. `geom_hex()`:
+```{r}
 # namiesto stvorcov sestuholniky
 oly12 |> 
   arrange(Sex) |> 
@@ -295,7 +341,8 @@ oly12 |>
     aes(x = Height, y = Weight)
   ) + 
   geom_hex()
-
+```
+```{r}
 # vlastnosti
 oly12 |> 
   arrange(Sex) |> 
@@ -308,6 +355,37 @@ oly12 |>
     direction = -1
   )
 
+```
+
+## Facetování
+Pro pohled na muže a ženy zvlášť je potom možné a užitečné použít facetování:
+```{r}
+oly12 %>% 
+    ggplot(
+        aes(x = Height, y = Weight)
+    ) +
+    geom_hex() +
+    facet_wrap("Sex", scales = "free")
+```
+
+Můžeme rozšířit obrázek o dodatečnou datovou vrstvu – pozici průměrů pro jednotlivé sporty
+```{r}
+oly12 %>% 
+    ggplot(
+        aes(x = Height, y = Weight)
+    ) +
+    geom_hex() +
+    geom_point(
+        data = oly12_stats,
+        aes(shape = Sport),
+        size = 3,
+        color = "red"
+    ) +
+    scale_shape_manual(values = c(65:90)) +
+    facet_wrap("Sex", scales = "free")
+```
+
+```{r}
 # rozdel na facety
 oly12 |> 
   arrange(Sex) |> 
@@ -320,14 +398,18 @@ oly12 |>
     direction = -1
   ) +
   facet_wrap(~Sex) # rovnake hranice
-
+```
+```{r}
 oly12 |> 
   arrange(Sex) |> 
   ggplot(
     aes(x = Height, y = Weight, color = Sex)
   ) + 
   geom_density_2d()
+```
 
+Kernel density
+```{r}
 # iny pristup: vybrat nahodny set
 
 
@@ -345,115 +427,174 @@ oly12_sample |>
   geom_density_2d()
 
 ```
-
-## Úkol A.2: Bodový graf s trendem
-
-```{r ukol_a_2}
-# Vytvořte scatter plot s trendovou čárou
-
-
-```
-
-## Úkol A.3: Facetování podle kategorií
-
-```{r ukol_a_3}
-# Použijte facet_wrap() nebo facet_grid()
-
-
-```
-
-## Úkol A.4: Vylepšení vzhledu
-
-```{r ukol_a_4}
-# Upravte témata, barvy a popisky
-
-
-```
-
 ---
 
-# 📊 Cvičení B: Rozdělení spojité proměnné
+# Cvičení B: Rozdělení spojité proměnné
 
 Práce s histogramy, hustotními grafy a dalšími vizualizacemi distribucí.
 
-## Načtení dat
+## Vytvoření dat
 
 ```{r ukol_b_nacteni}
-# Načtěte data
-
-
-# Prozkoumejte data
-
+datax <- data_frame(
+  x = rnorm(1000)
+)
 
 ```
 
 ## Úkol B.1: Histogram
 
 ```{r ukol_b_1}
-# Vytvořte histogram spojité proměnné
+datax %>%
+  ggplot(
+    aes(x = x)
+  ) +
+  geom_histogram(aes(y = ..density..), bins = 50) 
 
-
+datax %>%
+  ggplot(
+    aes(x = x)
+  ) +
+  geom_histogram(aes(y = ..density..), bins = 50) +
+  geom_density()
 ```
-
-## Úkol B.2: Hustotní graf
-
+Občas bývá užitečné okometricky zkontrolovat, zda data pocházejí z nějakého rozdělení – v tomto případě normálního. Zkuste do obrázku přidat hustotu normálního rozdělení.
+Hint: 'stat_function()'
 ```{r ukol_b_2}
-# Vytvořte density plot
 
-
+datax %>%
+  ggplot(
+    aes(x = x)
+  ) +
+  geom_histogram(aes(y = ..density..), bins = 50) +
+  geom_density() +
+  stat_function(
+    fun = dnorm,
+    color = "red"
+  )
 ```
-
-## Úkol B.3: Box plot
-
-```{r ukol_b_3}
-# Vytvořte krabicový graf podle kategorií
-
-
-```
-
-## Úkol B.4: Violin plot
-
-```{r ukol_b_4}
-# Vytvořte houslový graf
-
-
-```
-
-## Úkol B.5: Kombinace geomů
-
-```{r ukol_b_5}
-# Kombinujte více geomů v jednom grafu
-
-
-```
-
 ---
 
-# 🎨 Cvičení C: Komplexní vizualizace
+# Cvičení C: Komplexní vizualizace
 
 Vytvoření profesionální vizualizace s použitím všech naučených technik.
 
 ## Načtení dat
 
 ```{r ukol_c_nacteni}
-# Načtěte data
+library(readxl)
+library(countrycode)
 
+cpi <- read_excel('gapminder_cpi.xlsx') 
+cpi
 
-# Příprava dat pro vizualizaci
+cpi <- cpi %>% 
+  rename(country = 1) %>% 
+  pivot_longer(cols = -country,
+               names_to = 'year',
+               values_to = 'cpi',
+               names_transform = list(year = as.numeric)
+               )
 
+cpi
 
+hdi <- read_excel('gapminder_hdi.xlsx') %>% 
+  rename(country = HDI) %>%
+  pivot_longer(
+    cols = -country,
+    names_to = 'year',
+    values_to = 'hdi',
+    names_transform = list(year = as.numeric) 
+  )
+hdi
 ```
 
-## Krok 1: Vizualizace dat
-
-Vytvořte základní vizualizaci dat.
+## Úprava dat
 
 ```{r ukol_c_krok1}
-# Základní graf s vhodnými geomy
+plot_data <- left_join(cpi, hdi, by = c('country', 'year')) %>% 
+              # Spojí CPI a HDI podle země a roku
+  pivot_longer(
+    cols = -c(country, year),
+    names_to = 'variable',
+    values_to = 'value'
+  ) %>%
+    #Vyber nejnovější data pre kazdu krajinu a HDI/CPI
+  arrange(-year) %>%
+  group_by(country, variable) %>%
+  slice(1L)
 
+
+plot_data <- left_join(cpi, hdi, by = c('country', 'year')) %>% 
+              # Spojí CPI a HDI podle země a roku
+  pivot_longer(
+    cols = -c(country, year),
+    names_to = 'variable',
+    values_to = 'value'
+  ) %>%
+    #Vyber nejnovější data pre kazdu krajinu a HDI/CPI
+  arrange(-year) %>%
+  group_by(country, variable) %>%
+  slice(1L) %>%
+    # naspat na siroky format
+  select(-year) %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = value
+  ) %>% 
+  ungroup() %>%
+  drop_na()
+plot_data
 
 ```
+Pripojenie labelov
+```{r}
+plot_data <- read_tsv("country_labels.tsv", col_types = "cc") %>%
+  left_join(plot_data,., by="country")
+plot_data
+```
+```{r}
+plot_data$continent <- plot_data$country %>% 
+    countrycode("country.name","continent")
+plot_data
+```
+## Krok 1: Vizualizace dat
+Vzorový obrázek obsahuje tři vizualizace dat:
 
+- Body reprezentující pozorované hodnoty
+- Křivku vyhlazující pozorované hodnoty
+- Popisky vybraných pozorování
+
+Pro vizualizaci dat tedy budeme muset vytvořit pomocí funkcí `geom_*()` celkem tři vrstvy. Do obrázku je musíme zanést v takovém pořadí, aby výsledek odpovídal výslednému obrázku.
+
+**Hint:**
+
+- Body na vzorovém obrázku mají barevný okraj a bílý střed. Pozorování tedy musí být vizualizováno pomocí geometrického tvaru, který umožňujenastavit zvlášť vlastnosti (barvu) středu a okraje. To umožňuje například body tvaru číslo 21.
+- Pro zobrazení popisků existuje v **ggplot2** `geom_text()` a `geom_label()`. Tyto funkce však neumí "inteligentní" pozicování popisků tak, aby nedocházelo k překryvům. Zkuste použít `ggrepel::geom_text_repel()`.
+```{r}
+library(ggrepel)
+p <- plot_data %>%
+  ggplot(
+    aes(x = cpi, y = hdi)
+  ) +
+  geom_smooth(
+    se = FALSE,
+    color = 'red',
+    formula = y ~ log(x),
+    method = 'lm'
+  ) +
+  geom_point(
+    aes(color = continent),
+    shape = 21,
+    size = 4,
+    fill = 'white',
+    stroke = 1.2
+  ) +
+  geom_text_repel(
+    aes(label = country_label)
+  )
+p
+```
 ## Krok 2: Nastavení mapování
 
 Nastavte estetické mapování pro lepší interpretaci dat.
@@ -463,7 +604,22 @@ Nastavte estetické mapování pro lepší interpretaci dat.
 # - barva podle kategorie
 # - velikost podle hodnoty
 # - průhlednost
+p <- p +
+    scale_y_continuous(
+        name = "Human development index, 2011 (1=best)",
+        breaks = seq(from = 0.1, to = 1.1, by = 0.1)
+        ) +
+    scale_x_continuous(
+        name = "Corruption Perception Index, 2011 (10=least corrupt)",
+        breaks = 0:11
+        ) +
+    coord_cartesian(xlim = c(0.99,10.01), ylim = c(0.2,1)) +
+    labs(
+       title = "Corruption and human development",
+       caption = "Source: Gapminder"
+    )
 
+p
 
 ```
 
@@ -476,20 +632,28 @@ Vylepšete vzhled grafu pomocí témat, škál a popisků.
 # Upravte popisky pomocí labs()
 # Nastavte škály (scale_*())
 
-
-```
-
-## Finální graf
-
-```{r ukol_c_final}
-# Zkombinujte všechny předchozí kroky do jednoho komplexního grafu
-
-
+p + theme_classic() +
+    theme(
+        # Přidáme linky na pozadí
+        panel.grid.major.y = element_line(size = 0.1),
+        # Nastavíme podobu os
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank(),
+        axis.line.x = element_line(lineend = "square"),
+        # Nastavíme pozici a podobu legendy
+        legend.position = "top",
+        legend.direction = "horizontal",
+        legend.title = element_blank(),
+        # nastavíme podobu popisků
+        plot.caption = element_text(hjust = 0),
+        plot.title = element_text(face = "bold"),
+        axis.title = element_text(face = "italic")
+    )
 ```
 
 ---
 
-# 📈 Typy grafů v ggplot2
+# Typy grafů v ggplot2
 
 ## Spojité proměnné
 
@@ -549,7 +713,7 @@ ggplot(data, aes(x = category, y = value, fill = group)) +
 
 ---
 
-# 🎯 Estetické mapování (aes)
+# Estetické mapování (aes)
 
 Estetické vlastnosti můžeme mapovat na proměnné:
 
@@ -580,7 +744,7 @@ geom_point(aes(color = "blue"))
 
 ---
 
-# 🎨 Facetování
+# Facetování
 
 ## facet_wrap()
 
@@ -611,7 +775,7 @@ facet_grid(. ~ cols_var)
 
 ---
 
-# 🎭 Témata a vzhled
+# Témata a vzhled
 
 ## Vestavěná témata
 
@@ -646,7 +810,7 @@ ggplot(data, aes(x = var1, y = var2)) +
 
 ---
 
-# 🌈 Škály a barvy
+# Škály a barvy
 
 ## Spojité škály
 
@@ -675,7 +839,7 @@ scale_color_viridis_d()  # viridis paleta (diskrétní)
 
 ---
 
-# 💡 Důležité poznámky
+# Důležité poznámky
 
 ## Anatomie ggplot grafu
 
@@ -742,7 +906,7 @@ ggplot(data, aes(x = variable)) +
 
 ---
 
-# 📊 Kombinování geomů
+# Kombinování geomů
 
 Můžete kombinovat více geomů v jednom grafu:
 
@@ -755,7 +919,7 @@ ggplot(data, aes(x = var1, y = var2)) +
 
 ---
 
-# 💾 Ukládání grafů
+# Ukládání grafů
 
 ```r
 # Vytvoření grafu
@@ -769,32 +933,3 @@ ggsave("muj_graf.png", plot = p, width = 8, height = 6, dpi = 300)
 ggsave("muj_graf.pdf", plot = p)
 ggsave("muj_graf.svg", plot = p)
 ```
-
----
-
-# 🎯 Checklist
-
-- [ ] Rozumím struktuře ggplot grafu (data + geom + aes)?
-- [ ] Vím, kdy použít mapování v aes() a kdy mimo něj?
-- [ ] Dokážu vytvořit různé typy grafů (body, čáry, sloupcové, histogramy)?
-- [ ] Umím použít facetování pro rozdělení dat?
-- [ ] Vím, jak upravit témata a vzhled grafu?
-- [ ] Dokážu pracovat se škálami a barvami?
-- [ ] Umím kombinovat více geomů v jednom grafu?
-
----
-
-# 🔗 Užitečné odkazy
-
-- [ggplot2 cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/data-visualization.pdf)
-- [R for Data Science - Data visualization](https://r4ds.had.co.nz/data-visualisation.html)
-- [ggplot2 documentation](https://ggplot2.tidyverse.org/)
-- [R Graph Gallery](https://r-graph-gallery.com/)
-- [ggplot2 extensions](https://exts.ggplot2.tidyverse.org/)
-
----
-
-<div style="text-align: center; margin-top: 50px; padding: 20px; background-color: #f0f0f0; border-radius: 10px;">
-**Vytvorené pre:** MPE_AVED, Týždeň 9, ECON MUNI  
-**Dátum:** `r Sys.Date()`
-</div>
