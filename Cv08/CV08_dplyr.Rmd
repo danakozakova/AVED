@@ -1,14 +1,14 @@
 ---
 title: "Cvičení 8: dplyr - Manipulácia s dátami"
 subtitle: "MPE_AVED - Analýza a vizualizace ekonomických dat"
-author: "Vaše meno"
+author: "Mgr. Dana Kozáková"
 date: "`r Sys.Date()`"
 output:
   html_document:
     toc: true
     toc_float: true
     toc_depth: 3
-    number_sections: true
+    number_sections: false
     theme: cosmo
     highlight: tango
     code_folding: show
@@ -23,252 +23,382 @@ knitr::opts_chunk$set(
 )
 ```
 
-# 📚 Úvod
-
-V tomto cvičení si procvičíte používání základních nástrojů z balíku **dplyr**, které znáte z přednášky:
-
-- **`select()`** - výběr sloupců
-- **`filter()`** - filtrování řádků
-- **`arrange()`** - řazení dat
-- **`mutate()`** - vytváření nových proměnných
-- **`summarise()`** - agregace dat
-- **`group_by()`** - seskupování dat
-- **`*_join()`** - spojování tabulek
-
-# 📦 Načítání balíků
+# Načítání balíků
 
 ```{r packages}
-# Načtěte potřebné balíky
-
-
+library(tidyverse)
+library(dplyr)
 ```
-
 ---
 
-# 🔥 Cvičení na rozcvičení
+# Cvičení na rozcvičení
+Načtěte si data o sportovcích, kteří se zúčastnili Olympijských her v Londýně (`VGAMdata::oly12`) a tabulku si překlopte do `tibble`.
 
 ```{r ukol_rozehnuti_data}
-# Načtení a prozkoumání dat
+oly12 <- VGAMdata::oly12 %>% as_tibble()
+oly12
+```
+Nejprve data vyčistíme. Vyřadíme všechny sportovce, kteří nastupují ve více sportech. (To poznáme tak, že sloupec `Sport` obsahuje znak ",".)
+Také vyřadíme ty, u kterých chybí údaj o výšce, váze, nebo pohlaví.
+```{r}
+oly12 <- oly12 %>% 
+  filter(!str_detect(Sport, ',')) %>%
+  drop_na(Height, Weight, Sex)
+oly12
+```
 
+Nyní do tabulky doplňte nový sloupec (`bmi`) s BMI (`bmi = Weight / (Height)^2`) a najděte muže s nejnižším BMI.
+
+```{r}
+oly12 <- oly12 %>% 
+  mutate(bmi = Weight / (Height)^2)
+
+oly12 %>%
+  filter(Sex == 'M') %>%
+  arrange(bmi) %>% slice(1L)
+
+oly12 %>%
+  filter(Sex == 'M') %>%
+  slice_min(bmi, n = 1) 
 
 ```
 
-```{r ukol_rozehnuti}
-# Transformace dat pomocí dplyr funkcí
+Ve kterém sportu jsou sportovci nevychrtlejší? Zkuste i rozlišení podle pohlaví.
 
-
+```{r}
+oly12 %>%
+  group_by(Sport, Sex) %>%
+  dplyr::summarise(
+    meanBMI = mean(bmi, na.rm = TRUE)
+  ) %>%
+  arrange(meanBMI)
 ```
+
+Kolik bych vážil, kdybych byl na půměru... Dopočítejte svoji očekávanou váhu v každém sportu při své skutečné výšce a pohlaví.
+
+```{r}
+oly12 %>%
+  group_by(Sport, Sex) %>%
+  dplyr::summarise(
+    meanBMI = mean(bmi, na.rm = TRUE)
+  ) %>%
+  pivot_wider(names_from = Sex, values_from = meanBMI) %>%
+  mutate(myProjectedWeight = F*(1.6^2)) %>%
+  arrange(-myProjectedWeight)
+```
+
 
 ---
 
-# 🏛️ Cvičení 1: Privatizace a restituce v ČR
+#  Cvičení 1: Privatizace a restituce v ČR
 
-Analyzujte data o privatizaci a restituci v České republice.
+V tomto příkladě budete pracovat s daty o jednotlivých domech (tabulka `domy`). Ty ve své struktuře, datových typech, kódech a jménech proměnných přesně odpovídají datům, která poskytuje ČSÚ. Tabulka obsahuje unikátní identifikátor domu -- tzv. IDOB v proměnné `LIDAMSIDOB`. Tento klíč je pro účely tohoto cvičení vygenerován náhodně. 
+
+ČSÚ nemá data o privatizaci, která musí být doplněna z jiného zdroje. Ten pro nás představuje tabulka `privatizace`, která obsahuje IDOB ve sloupci `IDOB` a rok provedení privatizace ve sloupci `year`. 
+
+Vašim úkolem je v konečném důsledku rozhodnout o každém jednotlivém domě, zda byl restituován, privatizován nebo nespadá ani do jedné této kategorie. Privatizované domy identifikujete tak, ža mají záznam v tabulce `privatizace`.
 
 ## Načtení dat
 
 ```{r ukol_1_nacteni}
-# Načtěte data
+load("dplyr_exercise_01.RData")
+domy %>%
+  print(n = 5)
+```
+## Úkol 1.1: Sloučení tabulek
 
+Prvním krokem je sloučení (join) obou tabulek
 
-# Zobrazení dat
+```{r}
+domy %>%
+  select(LIDAMSIDOB, everything()) %>%
+  print(n = 5)
 
+privatizace  %>%
+  select(IDOB, everything()) %>%
+  print(n = 5)
 
+domy_priv <- domy %>% 
+  mutate(LIDAMSIDOB = as.character(LIDAMSIDOB)) %>%
+  left_join(privatizace,by = c('LIDAMSIDOB' ='IDOB'))  %>%
+  select(LIDAMSIDOB, year, everything())
+domy_priv
 ```
 
-## Úkol 1.1: Filtrování a výběr
+## Úkol 1.2: Sloupec pro restituce, privatizaci
 
-```{r ukol_1_1}
-# Filtrujte data podle zadaných kritérií
+Restituované domy jsou ty, které byly postaveny před rokem 1945 (proměnná `OBDVD` má u nich hodnotu 10 nebo 3), v roce 1991 je vlastnil stát (proměnná `kod91_vlast` má hodnotu 1) a v roce 2001 už je vlastnil restituent -- fyzická osoba (proměnná `jvlast_r01` má hodnotu 1).
 
+V druhém kroku vytvoříme ve sloučené tabulce proměnnou `status`, která bude nabývat hodnot `restituted`, `privatized` nebo `other`. Pozor! Nechceme žádná `NA`!
 
+**Doporučení:** Podívejte se na funkci `case_when()`.
+
+```{r}
+domy_priv %>%
+  select(LIDAMSIDOB, kod91_vlast, OBDVD, jvlast_r01, everything())
+
+domy_priv %>%
+  mutate(
+    status = case_when(
+      OBDVD %in% c('3', '10') & kod91_vlast == 1 & jvlast_r01 == 1 ~ 'restituted',
+      !is.na(year) ~ 'privatized',
+      TRUE ~ 'other'
+    ) 
+  ) %>%
+  select(status, everything())
+
+domy_priv %>%
+  mutate(
+    status = case_when(
+      OBDVD %in% c('3', '10') & kod91_vlast == 1 & jvlast_r01 == 1 ~ 'restituted',
+      !is.na(year) ~ 'privatized',
+      TRUE ~ 'other'
+    ) 
+  ) %>%
+  select(status, everything()) %>%
+  count(status)
+        
 ```
-
-## Úkol 1.2: Tvorba nových proměnných
-
-```{r ukol_1_2}
-# Vytvořte nové proměnné pomocí mutate()
-
-
-```
-
-## Úkol 1.3: Seskupení a agregace
-
-```{r ukol_1_3}
-# Seskupte data a vypočítejte agregační statistiky
-
-
-```
-
 ---
 
-# 📊 Cvičení 2: Census v otevřených datech ČSÚ
+# Cvičení 2: Census v otevřených datech ČSÚ
 
 Práce s otevřenými daty z Českého statistického úřadu.
 
-## Načtení dat
-
 ```{r ukol_2_nacteni}
-# Načtěte census data
-
-
-# Zobrazení struktury dat
-
+sldb <- read_csv('SLDB_OBYVATELSTVO_2011.CSV', locale = locale(encoding = 'latin2'))
+sldb
 
 ```
 
-## Úkol 2.1: Výběr relevantních sloupců
-
+## Úkol 2.1: Výběr relevantních řádků - tidy
+První pohled ukazuje, že data od ČSÚ nejsou *tidy*. Prvním krokem tedy bude data do tohoto formátu převést. Konkrétně v tabulce ponechat pouze pozorování za obce (proměnná `typuz_naz`).
 ```{r ukol_2_1}
-# Vyberte relevantní sloupce pomocí select()
+sldb %>% 
+  count(typuz_naz)
 
-
+sldb <- sldb %>%
+  filter(typuz_naz == 'obec')
+sldb
 ```
 
-## Úkol 2.2: Filtrování a řazení
-
+## Úkol 2.2: Nezaměstnanost
+Nyní pro každou obec vypočítejte míru nezaměstnanosti jako `vse6181/vse6111` (nezaměstnaní/ekonomicky aktivní).
 ```{r ukol_2_2}
-# Filtrujte data a seřaďte je
+sldb <- sldb %>%
+  mutate(
+    u_rate = vse6181/vse6111
+  ) %>% 
+  select(u_rate, everything())
 
-
+sldb %>% print(n = 5)
 ```
 
-## Úkol 2.3: Komplexní transformace
+## Úkol 2.3 Nezamestnanost v kraji
+Nyní pro každý kraj spočítejte minimální, průměrnou a maximální míru nezaměstanosti na úrovni obcí. Zvlášť vypočítejte tyto hodnoty pro malé (do 1000 obyvatel) a ostatní obce.
+
+Počet obyvatel najdete ve sloupci `vse1111`.
+
+Pro tento úkol budete potřebovat tabulku přiřazující obce do krajů. Tu najdete v `tabulka_obci.RData`.
 
 ```{r ukol_2_3}
-# Kombinujte více dplyr operací
 
+load("tabulka_obci.RData")
+tabulka_obci
 
+sldb %>% 
+  mutate(
+    KOD_OBEC = as.character(uzkod)
+    ) %>%
+  left_join(tabulka_obci,by = 'KOD_OBEC') %>%
+  mutate(
+    pop_category = case_when(
+      vse1111 <= 1000 ~ 'male',
+      TRUE ~ 'velke'
+    )
+  ) %>%
+  # select(KOD_OBEC, KOD_KRAJ, pop_category, everything()) %>%
+  group_by(KOD_KRAJ, pop_category) %>%
+  summarise(
+    min = min(u_rate, na.rm = TRUE),
+    mean = mean(u_rate, na.rm = TRUE),
+    max = max(u_rate, na.rm = TRUE)
+  )
 ```
 
 ---
 
-# 🌍 Cvičení 3: WIID data
+# Cvičení 3: WIID data
 
 Analýza dat o příjmové nerovnosti z World Income Inequality Database.
 
 ## Načtení dat
 
 ```{r ukol_3_nacteni}
-# Načtěte WIID data
-
-
-# Zobrazení prvních řádků
-
+wiid <- read_tsv('WIID_ver3_sept15_0.tsv')
+wiid %>% print()
 
 ```
 
 ## Úkol 3.1: Explorativní analýza
+WIID je sbírků údajů o nerovnosti sesbíraných z mnoha různých zdrojů. My se zaměříme na Giniho koeficent (`Gini`). Každá pozorování je hodnoceno podle kvality (`Quality`) od `High` (nejlepší) po `Not known` (nejhorší). Abychom získali lepší přehled o organizaci datasetu omezíme si tabulku pouze na sloupce `Country`, `Year`, `Gini` a `Quality`:
 
 ```{r ukol_3_1}
-# Prozkoumejte strukturu dat
+wiid <- wiid %>% 
+    select(Country, Year, Gini, Quality)
+wiid %>% print()
 
 
 ```
 
-## Úkol 3.2: Agregace podle skupin
+## Úkol 3.2: Oprava
+Na příkladu vidíte, že pro některé státy je pro jeden rok dostupných více pozorování. V dalším kroku budeme chtít dataset upravit tak, aby se v takovém případě použilo pozorování s vyšším hodnocením kvality.
+
 
 ```{r ukol_3_2}
-# Seskupte data a vypočítejte statistiky
-
+wiid %>% 
+  drop_na(Gini) %>%
+  mutate(
+    Quality = factor(Quality, levels = c('High','Average','Low','Not known'))
+  ) %>%
+  group_by(Country, Year) %>%
+  arrange(Quality, .by_group = TRUE) %>%
+  slice(1L) %>%
+  ungroup()
 
 ```
 
-## Úkol 3.3: Vytvoření souhrnné tabulky
+# Cvičení 4: Spojování tabulek
 
-```{r ukol_3_3}
-# Vytvořte souhrnnou tabulku s klíčovými metrikami
-
-
-```
-
----
-
-# 🔗 Cvičení 4: Spojování tabulek
-
-Procvičení různých typů joinů.
-
-## Příprava dat
+V tomto cvičení použijeme tabulky z *dplyr*: `band_instruments` a `band_members`. Tabulku `band_members` si nejprve upravíme:
 
 ```{r ukol_4_priprava}
-# Vytvořte nebo načtěte testovací tabulky
+band_members2 <- band_members %>% 
+  filter(name != 'Mick')
 
-
+band_members2
 ```
 
-## Úkol 4.1: Inner join
+Nyní spojte tabulky `band_instruments` a `band_members2`. Výsledná tabulka bude mít rozměry 3 $\times$ 3. Použití funkcí `*_join()` je v tomto cvičení zakázáno. Navrhněte řešení s pomocí funkcí z *tidyverse*.
 
 ```{r ukol_4_1}
-# Proveďte inner join
+band_instruments
 
+band_members3 <- band_members2 %>%
+  complete( name = band_instruments$name) %>%
+  arrange(name)
 
+band_instruments %>%
+  arrange(name) %>%
+  bind_cols(select(band_members3, - name))
+  
 ```
 
-## Úkol 4.2: Left join
-
-```{r ukol_4_2}
-# Proveďte left join
-
-
-```
-
-## Úkol 4.3: Full join
-
-```{r ukol_4_3}
-# Proveďte full join
-
-
-```
-
-## Úkol 4.4: Anti join
-
-```{r ukol_4_4}
-# Použijte anti join pro identifikaci neshod
-
-
-```
 
 ---
 
-# 🔄 Cvičení 5: Nahrazení chybějících hodnot
+# Cvičení 5: Nahrazení chybějících hodnot
 
 Práce s chybějícími hodnotami v datech.
 
-## Načtení dat s NA
-
 ```{r ukol_5_nacteni}
-# Načtěte data s chybějícími hodnotami
-
-
-# Zjistěte počet NA v jednotlivých sloupcích
-
+load('dplyr_Gasoline.RData')
+Gasoline
 
 ```
 
-## Řešení úkolu 1: Odstranění řádků s NA
+## Úkol 5.1: NA - nahrazeni prumerem pro zemi
+Nahradit NA.Pro nahrazení použijte průměrnou hodnotu pro zemi.
 
 ```{r ukol_5_reseni_1}
-# Odstraňte řádky obsahující NA
 
+Gasoline %>%
+  pivot_longer(-c(country, year), names_to = 'variable') %>%
+  arrange(country, year)
 
+Gasoline %>%
+  pivot_longer(-c(country, year), names_to = 'variable') %>%
+  arrange(country, year) %>%
+  group_by(country, variable) %>%
+  mutate(
+    value = ifelse(is.na(value), mean(value, na.rm = TRUE), value)
+  ) %>%
+  ungroup()
+
+Gasoline %>%
+  pivot_longer(-c(country, year), names_to = 'variable') %>%
+  arrange(country, year) %>%
+  group_by(country, variable) %>%
+  mutate(
+    value = ifelse(is.na(value), mean(value, na.rm = TRUE), value)
+  ) %>%
+  ungroup() %>%
+  pivot_wider(names_from = variable)
+```
+ine riesenie
+```{r}
+Gasoline %>%
+  group_by(country) %>%
+  mutate(
+    across(where(is.double), 
+           \(x) replace_na(x, mean(x, na.rm = TRUE)))
+  ) %>%
+  ungroup()
 ```
 
-## Řešení úkolu 2: Nahrazení NA konkrétními hodnotami
+## Ukol 5.2
+Pro nahrazení použijte "kumulativní průměr" -- tj. průměr všech předchozích hodnot.
 
+Hint: **dplyr** má (omezené) množství tzv. window functions -- např. `cummean()`
+
+Mělo by stačit nahradit `mean()`, ale `cummean()` si nedokáže poradiť s NA:
 ```{r ukol_5_reseni_2}
-# Nahraďte NA vhodnými hodnotami
-
-
+Gasoline %>%
+  pivot_longer(-c(country, year), names_to = 'variable') %>%
+  arrange(country, year) %>%
+  group_by(country, variable) %>%
+  mutate(
+    value = ifelse(is.na(value), cummean(value), value)
+  ) %>%
+  ungroup() %>%
+  pivot_wider(names_from = variable)
 ```
-
-## Řešení úkolu 3: Komplexní řešení s group_by
 
 ```{r ukol_5_reseni_3}
-# Použijte skupinové operace pro nahrazení NA
 
+Gasoline %>%
+  pivot_longer(-c(country, year), names_to = 'variable') %>%
+  arrange(country, year) %>%
+  drop_na() %>% # tu vyhodime NA
+  group_by(country, variable) %>%
+  mutate(
+    mean_value = ifelse(is.na(value), cummean(value), value)
+  ) %>%
+  ungroup() %>%
+  complete(country,year = 1960:1978, variable) %>%  # spat vsetky riadky
+  group_by(country, variable) %>% 
+  mutate(
+    value = ifelse(is.na(value), lag(mean_value), value) # ina window funkcia lag()
+  ) %>% 
+  # a teraz stačí tabulku vrátit do povodného tvaru...
+  select(-mean_value) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = variable)
 
 ```
+## Ukol 5.3 Klouzavý průměr
+Pro nahrazení použijte klouzavý průměr.
+```{r}
+library(slider)
 
+Gasoline %>% 
+    group_by(country) %>%
+    arrange(year) %>%
+    mutate(
+        lcarpcap_ = slide_dbl(lcarpcap, mean, .before = 5)
+    )
+
+```
 ---
 
 # 📝 Přehled funkcí dplyr
