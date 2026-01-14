@@ -1,0 +1,348 @@
+---
+title: "Cvičná skúška - Riešenie"
+author: "Dana Kozáková"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Úvodné nastavenie
+
+```{r}
+# Načítanie potrebných knižníc
+library(tidyverse)
+library(fixest)
+
+# Načítanie dát
+lits <- readr::read_rds("zk_lits3.rds")
+
+# Prehľad premenných v datasete
+lits %>% colnames()
+```
+
+---
+
+## Úloha 1: Práca s chybajúcimi hodnotami
+
+### 1a) Nahradenie kódu -99 za NA v premennej general_trust
+
+**Problém:** V premennej `general_trust` je kód `-99` použitý na označenie chybajúcej hodnoty
+
+```{r}
+# Základný prístup s ifelse - POZOR: ifelse používa == nie =
+lits %>%
+  mutate(
+    general_trust = ifelse(general_trust == -99, NA, general_trust)
+  )
+```
+
+```{r}
+# Lepší prístup - zabezpečíme správny dátový typ
+lits %>%
+  mutate(
+    general_trust = as.integer(general_trust),
+    general_trust = ifelse(general_trust == -99, NA, general_trust)
+  )
+```
+
+```{r}
+# Najelegantnejší prístup pomocou na_if()
+lits %>%
+  mutate(
+    general_trust = na_if(general_trust, -99)
+  )
+```
+
+### 1b) Nahradenie chybajúcich hodnot v premennej food priemerom pre danú krajinu
+
+**Problém:** Niektoré hodnoty v stľpci `food` sú NA, chceme ich nahradiť priemerom pre danú krajinu
+
+```{r}
+# Nahradenie NA priemernou hodnotou food pre každú krajinu
+lits %>%
+  group_by(country) %>%
+  mutate(
+    food = ifelse(is.na(food), mean(food, na.rm = TRUE), food)
+  ) %>%
+  ungroup()
+```
+
+### Kompletné riešenie úlohy 1
+
+```{r}
+# Uložíme vyčistené dáta do lits
+lits <- lits %>%
+  mutate(
+    general_trust = na_if(general_trust, -99)
+  ) %>%
+  group_by(country) %>%
+  mutate(
+    food = ifelse(is.na(food), mean(food, na.rm = TRUE), food)
+  ) %>%
+  ungroup()
+```
+
+---
+
+## Úloha 2: Exploratórna analýza dát
+
+**Cieľ:** Vytvoriť súhrnnú tabuľku deskriptívnych štatistík pre všetky premenné (okrem ID a country)
+
+### Vytvorenie dummy premenných pre house
+
+```{r}
+# Kontrola unikátnych hodnôt premennej house
+lits$house %>% unique()
+```
+
+```{r}
+# Vytvorenie dummy premenných pre typ bývania
+lits %>%
+  mutate(
+    house_owner = house == "owner",
+    house_renter = house == "renter",
+    house_other = house == "other"
+  ) %>%
+  select(-c(ID, house, country)) # odstránime ID a nečíselné premenné
+# alebo: select(-ID:-house)
+```
+
+### Výpočet súhrnných štatistík
+
+```{r}
+# Pivot tabuľky do dlhého formátu a výpočet štatistík
+lits %>%
+  mutate(
+    house_owner = house == "owner",
+    house_renter = house == "renter",
+    house_other = house == "other"
+  ) %>%
+  select(-ID:-house) %>%
+  pivot_longer(everything()) %>%  # všetky stĺpce do dlhého formátu
+  group_by(name) %>%
+  summarise(
+    mean = mean(value, na.rm = TRUE),
+    sd = sd(value, na.rm = TRUE),
+    iqr = IQR(value, na.rm = TRUE)
+  )
+```
+
+```{r, eval=FALSE}
+# Alternatívny prístup pomocou map_dbl (treba riešiť NA)
+map_dbl(lits, mean)
+map_dbl(lits, sd)
+map_dbl(lits, IQR)
+```
+
+---
+
+## Úloha 3: Vizualizácia vzťahu medzi education a general_trust
+
+**Cieľ:** Pre 4 náhodne vybrané krajiny zobraziť vzťah medzi vzdelaním a dôverou
+
+### Výber náhodných krajín
+
+```{r}
+# Metóda 1: Manuálny výber
+selected <- lits$country %>% unique() %>% sample(4)
+lits %>% 
+  filter(country %in% selected)
+```
+
+```{r}
+# Metóda 2: Pomocou slice_sample a semi_join
+lits %>%
+  distinct(country) %>%
+  slice_sample(n = 4) %>%  # náhodne vyberieme 4 riadky
+  semi_join(lits, .)        # zachováme iba riadky z vybraných krajín
+```
+
+### Základný scatter plot - PROBLÉM s diskrétnymi dátami
+
+```{r, eval=FALSE}
+# Tento prístup nefunguje dobre, lebo máme diskrétne hodnoty
+lits %>% 
+  filter(country %in% selected) %>%
+  ggplot(aes(x = education, y = general_trust)) + 
+  geom_point() # body sa prekrývajú
+```
+
+### Riešenie 1: Jitter plot s priehľadnosťou
+
+```{r}
+# Pridanie náhodného šumu (jitter) a priehľadnosti
+lits %>% 
+  filter(country %in% selected) %>%
+  ggplot(aes(x = education, y = general_trust)) + 
+  geom_jitter(alpha = 0.2)
+```
+
+### Riešenie 2: Farebné rozlíšenie krajín
+
+```{r}
+# Rozlíšenie krajín farbou
+lits %>% 
+  filter(country %in% selected) %>%
+  ggplot(aes(x = education, y = general_trust, color = country)) + 
+  geom_jitter(alpha = 0.2)
+```
+
+### Riešenie 3: Faceting podľa krajín
+
+```{r}
+# Samostatný graf pre každú krajinu
+lits %>% 
+  filter(country %in% selected) %>%
+  ggplot(aes(x = education, y = general_trust, color = country)) + 
+  geom_jitter(alpha = 0.2) +
+  facet_wrap(~country)
+```
+
+### Riešenie 4: Veľkosť bodu podľa početnosti
+
+**Myšlienka:** Zoskupiť rovnaké kombinácie education × general_trust a veľkosť bodu = počet pozorovaní
+
+```{r}
+# Variant s farbou pre krajinu
+lits %>% 
+  filter(country %in% selected) %>%
+  group_by(education, general_trust, country) %>%
+  summarise(obs = n()) %>%
+  ggplot(aes(x = education, y = general_trust, size = obs, color = country)) + 
+  geom_point() +
+  facet_wrap(~country)
+```
+
+```{r}
+# Variant bez farby pre krajinu
+lits %>% 
+  filter(country %in% selected) %>%
+  group_by(education, general_trust, country) %>%
+  summarise(obs = n()) %>%
+  ggplot(aes(x = education, y = general_trust, size = obs)) + 
+  geom_point() +
+  facet_wrap(~country)
+```
+
+### Riešenie 5: Heatmap (tile plot)
+
+```{r}
+# Základný tile plot
+lits %>% 
+  filter(country %in% selected) %>%
+  group_by(education, general_trust, country) %>%
+  summarise(obs = n()) %>%
+  ggplot(aes(x = education, y = general_trust, fill = obs)) + 
+  geom_tile() +
+  facet_wrap(~country)
+```
+
+```{r}
+# Tile plot s upravená farebnou škálou
+lits %>% 
+  filter(country %in% selected) %>%
+  group_by(education, general_trust, country) %>%
+  summarise(obs = n()) %>%
+  ggplot(aes(x = education, y = general_trust, fill = obs)) + 
+  geom_tile() +
+  scale_fill_distiller(direction = 1) +  # svetlejšia = viac pozorovaní
+  facet_wrap(~country)
+```
+
+### BONUS: Porovnanie food medzi krajinami (štandardizované hodnoty)
+
+```{r}
+# Density plot pre štandardizované hodnoty food
+lits %>%
+  distinct(country) %>%
+  slice_sample(n = 4) %>%
+  semi_join(lits, .) %>%
+  group_by(country) %>%
+  mutate(food = scale(food)) %>%  # štandardizácia (z-score)
+  ungroup() %>%
+  ggplot(aes(x = food, fill = country)) +
+  geom_density(alpha = 0.4)
+```
+
+```{r, eval=FALSE}
+# Boxplot variant - POZOR: chyba vo funkcii
+lits %>%
+  distinct(country) %>%
+  slice_sample(n = 4) %>%
+  semi_join(lits, .) %>%
+  group_by(country) %>%
+  mutate(food = scale(food)) %>%
+  ggplot(aes(y = food, x = country)) +
+  geom_boxplot()  # správne je geom_boxplot() nie boxplot()
+```
+
+---
+
+## Úloha 4: Regresná analýza
+
+**Cieľ:** Odhadnúť dva modely pomocou fixest - jeden bez house, jeden s house
+
+### Príprava premennej house
+
+```{r}
+# Potrebujeme house ako faktor s referenčnou kategóriou "renter"
+lits %>%
+  mutate(
+    house = house %>% as.factor() %>% relevel(ref = "renter")
+    # alebo: house = factor(house, levels = c("renter", "owner", "other"))
+  )
+```
+
+### Odhad modelov
+
+```{r}
+# sw0() vytvorí dva modely: jeden bez house, jeden s house
+lits %>%
+  mutate(
+    house = house %>% as.factor() %>% relevel(ref = "renter")
+  ) %>%
+  feols(
+    vote_local_el ~ net_access + sw0(house),
+    data = .
+  )
+```
+
+### Prehľadnejší výstup pomocou etable()
+
+```{r}
+# etable() vytvorí prehľadnú tabuľku výsledkov
+lits %>%
+  mutate(
+    house = house %>% as.factor() %>% relevel(ref = "renter")
+  ) %>%
+  feols(
+    vote_local_el ~ net_access + sw0(house), # sw0 = odhadni raz bez, raz s premennou
+    data = .
+  ) %>% 
+  etable()
+
+# Poznámka: Namiesto feols() sa dá použiť aj lm(), ale fixest je rýchlejší
+```
+
+---
+
+## Zhrnutie
+
+V tejto cvičnej skúške sme sa zaoberali:
+
+1. **Čistením dát**: Nahradenie chybných kódov za NA, imputácia chybajúcich hodnôt
+2. **Deskriptívnou štatistikou**: Výpočet priemerov, smerodajných odchýlok a IQR pre všetky premenné
+3. **Vizualizáciou**: Rôzne prístupy k zobrazeniu vzťahu dvoch diskrétnych premenných
+4. **Modelovaním**: Odhad lineárnych regresných modelov pomocou fixest
+
+**Kľúčové funkcie:**
+
+- `na_if()` - nahradenie špecifickej hodnoty za NA
+- `pivot_longer()` - transformácia zo širokého na dlhý formát
+- `semi_join()` - filtrovanie riadkov na základe iného datasetu
+- `geom_jitter()`, `geom_tile()` - vizualizácia diskrétnych dát
+- `feols()` - rýchly odhad lineárnych modelov
+- `sw0()` - vytvorenie viacerých modelových špecifikácií
